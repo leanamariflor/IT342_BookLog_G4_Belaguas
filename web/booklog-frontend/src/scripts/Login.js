@@ -19,6 +19,22 @@ export const handleLogin = async (e, email, password) => {
       }
     );
 
+    // Store user data in localStorage
+    const userData = response.data;
+    localStorage.setItem("user", JSON.stringify({
+      userId: userData.userId,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      profileImage: userData.profileImage,
+      oauthProvider: userData.provider || null,
+      roles: userData.roles || ["ROLE_USER"]
+    }));
+
+    if (userData.token) {
+      localStorage.setItem("token", userData.token);
+    }
+
     alert("Login successful!");
 
     console.log(response.data);

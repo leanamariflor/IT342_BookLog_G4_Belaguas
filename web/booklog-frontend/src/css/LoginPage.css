@@ -88,6 +88,11 @@ h2 {
   background: white;
   cursor: pointer;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
 }
 
 .logo-img {
@@ -98,6 +103,12 @@ h2 {
   background: #f9fafb;
 }
 
+.google-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 .signup-text {
   margin-top: 15px;
   font-size: 14px;
@@ -105,6 +116,7 @@ h2 {
 }
 
 .signup-text span {
+  margin-left: 6px;
   color: black;
   font-weight: bold;
   cursor: pointer;

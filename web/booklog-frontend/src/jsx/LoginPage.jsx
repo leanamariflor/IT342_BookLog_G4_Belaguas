@@ -1,19 +1,33 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../css/LoginPage.css";
 import logo from "../assets/logo1.png";
+import googleIcon from "../assets/google-icon.svg";
 import { handleLogin } from "../scripts/Login";
+import { signInWithProvider } from "../services/supabaseClient";
 
 function LoginPage({ onShowRegister, onLoginSuccess }) {
-
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const submitLogin = async (e) => {
-
     const success = await handleLogin(e, email, password);
 
-    if (success && typeof onLoginSuccess === "function") {
-      onLoginSuccess();
+    if (success) {
+      if (typeof onLoginSuccess === "function") {
+        onLoginSuccess();
+      }
+      navigate("/dashboard");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithProvider('google');
+      // Supabase will redirect to Google, then back to /oauth2/redirect
+    } catch (error) {
+      alert("Google login failed: " + error.message);
     }
   };
 
@@ -49,14 +63,15 @@ function LoginPage({ onShowRegister, onLoginSuccess }) {
             Sign In
           </button>
 
-          <button type="button" className="google-btn">
-            G Login with Google
+          <button type="button" className="google-btn" onClick={handleGoogleLogin}>
+            <img src={googleIcon} alt="Google" className="google-icon" />
+            <span>Login with Google</span>
           </button>
 
           <p className="signup-text">
-            Don't have an account? 
-            <span onClick={() => onShowRegister && onShowRegister()}>
-              Sign up
+            Don't have an account?  
+            <span onClick={() => navigate("/register")}>
+             Sign up
             </span>
           </p>
 

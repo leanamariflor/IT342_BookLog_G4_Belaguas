@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../css/RegisterPage.css";
 import logo from "../assets/logo1.png";
 import { handleRegister } from "../scripts/Register";
 
-function RegisterPage({ onShowLogin }) {
+function RegisterPage({ onShowLogin, onRegisterSuccess }) {
+  const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -11,14 +13,21 @@ function RegisterPage({ onShowLogin }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const submitForm = (e) => {
-    handleRegister(e, {
+  const submitForm = async (e) => {
+    const success = await handleRegister(e, {
       firstName,
       lastName,
       email,
       password,
       confirmPassword
     });
+
+    if (success) {
+      if (typeof onRegisterSuccess === "function") {
+        onRegisterSuccess();
+      }
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -75,11 +84,11 @@ function RegisterPage({ onShowLogin }) {
           </button>
 
           <button type="button" className="google-btn">
-            G Sign up with Google
+            Sign up with Google
           </button>
 
           <p className="signin-text">
-            Already have an account? <span onClick={() => onShowLogin && onShowLogin()}>Sign in</span>
+            Already have an account? <span onClick={() => navigate("/")}>Sign in</span>
           </p>
 
         </form>

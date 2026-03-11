@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export const handleLogin = async (e, email, password) => {
 
   e.preventDefault();
@@ -12,7 +14,7 @@ export const handleLogin = async (e, email, password) => {
   try {
 
     const response = await axios.post(
-      "http://localhost:8080/api/auth/login",
+      `${baseUrl}/api/auth/login`,
       {
         email,
         password
@@ -49,7 +51,7 @@ export const handleLogin = async (e, email, password) => {
       alert(error.response.data.message || "Login failed: server returned an error");
     } else if (error.request) {
       console.error("No response received:", error.request);
-      alert("No response from server. Is the backend running at http://localhost:8080 ?");
+      alert(`No response from server. Is the backend running at ${baseUrl} ?`);
     } else {
       console.error("Error setting up request:", error.message);
       alert("Login error: " + error.message);

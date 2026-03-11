@@ -4,7 +4,6 @@ import "../css/LoginPage.css";
 import logo from "../assets/logo1.png";
 import googleIcon from "../assets/google-icon.svg";
 import { handleLogin } from "../scripts/Login";
-import { signInWithProvider } from "../services/supabaseClient";
 
 function LoginPage({ onShowRegister, onLoginSuccess }) {
   const navigate = useNavigate();
@@ -22,13 +21,10 @@ function LoginPage({ onShowRegister, onLoginSuccess }) {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithProvider('google');
-      // Supabase will redirect to Google, then back to /oauth2/redirect
-    } catch (error) {
-      alert("Google login failed: " + error.message);
-    }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${baseUrl}/oauth2/authorization/google`;
   };
 
   return (

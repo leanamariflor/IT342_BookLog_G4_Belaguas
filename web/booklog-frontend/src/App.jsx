@@ -37,9 +37,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* OAuth2 redirect handler (accessible without authentication) */}
         <Route
           path="/oauth2/redirect"
+          element={<OAuth2RedirectHandler onLoginSuccess={handleLoginSuccess} />}
+        />
+        <Route
+          path="/auth/callback"
           element={<OAuth2RedirectHandler onLoginSuccess={handleLoginSuccess} />}
         />
         
@@ -50,7 +53,6 @@ function App() {
               element={
                 <LoginPage
                   onShowRegister={(show) => {
-                    /* Router handles this */
                   }}
                   onLoginSuccess={handleLoginSuccess}
                 />
@@ -61,7 +63,7 @@ function App() {
               element={
                 <RegisterPage
                   onShowLogin={(show) => {
-                    /* Router handles this */
+                   
                   }}
                   onRegisterSuccess={handleRegisterSuccess}
                 />

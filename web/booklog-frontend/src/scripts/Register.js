@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export const handleRegister = async (e, formData) => {
 
   e.preventDefault();
@@ -20,7 +22,7 @@ export const handleRegister = async (e, formData) => {
   try {
 
     const response = await axios.post(
-      "http://localhost:8080/api/auth/register",
+      `${baseUrl}/api/auth/register`,
       {
         firstName,
         lastName,
@@ -58,7 +60,7 @@ export const handleRegister = async (e, formData) => {
       alert(error.response.data.message || "Registration failed: server returned an error");
     } else if (error.request) {
       console.error("No response received:", error.request);
-      alert("No response from server. Is the backend running at http://localhost:8080 ?");
+      alert(`No response from server. Is the backend running at ${baseUrl} ?`);
     } else {
       console.error("Error setting up request:", error.message);
       alert("Registration error: " + error.message);

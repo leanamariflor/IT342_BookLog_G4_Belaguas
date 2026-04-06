@@ -3,8 +3,6 @@ import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
 import logoImg from "../assets/logo.svg";
 import dashboardIcon from "../assets/dashboard.png";
-import userIcon from "../assets/user.png";
-import booksIcon from "../assets/book.png";
 import logoutIcon from "../assets/logout.png";
 import bellIcon from "../assets/bell.png";
 
@@ -23,7 +21,6 @@ export const PageHeader = ({ initials = "AJ" }) => {
 const Sidebar = ({ activePage = "dashboard", onLogout }) => {
   const navigate = useNavigate();
   const [userInitials, setUserInitials] = useState("U");
-  const [isAdmin, setIsAdmin] = useState(false);
 
   // Get user initials from localStorage
   useEffect(() => {
@@ -32,7 +29,6 @@ const Sidebar = ({ activePage = "dashboard", onLogout }) => {
       const firstInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : "";
       const lastInitial = userData.lastName ? userData.lastName.charAt(0).toUpperCase() : "";
       setUserInitials(firstInitial + lastInitial || "U");
-      setIsAdmin((userData.roles || []).includes("ROLE_ADMIN"));
     }
   }, []);
 
@@ -46,12 +42,6 @@ const Sidebar = ({ activePage = "dashboard", onLogout }) => {
   const handleNavigation = (page) => {
     if (page === "dashboard") {
       navigate("/dashboard");
-    } else if (page === "books") {
-      navigate("/books");
-    } else if (page === "profile") {
-      navigate("/profile");
-    } else if (page === "admin") {
-      navigate("/admin");
     }
   };
 
@@ -76,29 +66,6 @@ const Sidebar = ({ activePage = "dashboard", onLogout }) => {
           <img src={dashboardIcon} alt="Dashboard" className="nav-icon" />
           Dashboard
         </div>
-        <div
-          className={`nav-item ${activePage === "books" ? "active" : ""}`}
-          onClick={() => handleNavigation("books")}
-        >
-          <img src={booksIcon} alt="My Books" className="nav-icon" />
-          My Books
-        </div>
-        <div
-          className={`nav-item ${activePage === "profile" ? "active" : ""}`}
-          onClick={() => handleNavigation("profile")}
-        >
-          <img src={userIcon} alt="Profile" className="nav-icon" />
-          Profile
-        </div>
-        {isAdmin && (
-          <div
-            className={`nav-item ${activePage === "admin" ? "active" : ""}`}
-            onClick={() => handleNavigation("admin")}
-          >
-            <img src={userIcon} alt="Admin" className="nav-icon" />
-            Admin
-          </div>
-        )}
       </nav>
       <div className="logout-divider"></div>
       <div className="logout" onClick={handleLogout}>

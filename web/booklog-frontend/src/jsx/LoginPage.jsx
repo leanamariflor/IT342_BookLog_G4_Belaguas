@@ -4,9 +4,10 @@ import "../css/LoginPage.css";
 import logo from "../assets/logo1.png";
 import googleIcon from "../assets/google-icon.svg";
 import { handleLogin } from "../scripts/Login";
-import { signInWithProvider } from "../services/supabaseClient";
 
-function LoginPage({ onShowRegister, onLoginSuccess }) {
+const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
+function LoginPage({ onLoginSuccess }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,12 +24,7 @@ function LoginPage({ onShowRegister, onLoginSuccess }) {
   };
 
   const handleGoogleLogin = async () => {
-    try {
-      await signInWithProvider('google');
-      // Supabase will redirect to Google, then back to /oauth2/redirect
-    } catch (error) {
-      alert("Google login failed: " + error.message);
-    }
+    window.location.href = `${backendBaseUrl}/oauth2/authorization/google`;
   };
 
   return (

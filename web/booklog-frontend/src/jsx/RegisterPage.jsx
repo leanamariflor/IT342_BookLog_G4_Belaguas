@@ -4,7 +4,9 @@ import "../css/RegisterPage.css";
 import logo from "../assets/logo1.png";
 import { handleRegister } from "../scripts/Register";
 
-function RegisterPage({ onShowLogin, onRegisterSuccess }) {
+const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
+function RegisterPage({ onRegisterSuccess }) {
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
@@ -28,6 +30,10 @@ function RegisterPage({ onShowLogin, onRegisterSuccess }) {
       }
       navigate("/dashboard");
     }
+  };
+
+  const handleGoogleSignup = async () => {
+    window.location.href = `${backendBaseUrl}/oauth2/authorization/google`;
   };
 
   return (
@@ -83,7 +89,7 @@ function RegisterPage({ onShowLogin, onRegisterSuccess }) {
             Create Account
           </button>
 
-          <button type="button" className="google-btn">
+          <button type="button" className="google-btn" onClick={handleGoogleSignup}>
             Sign up with Google
           </button>
 

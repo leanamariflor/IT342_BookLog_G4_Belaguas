@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCurrentSession } from "../services/supabaseClient";
 import axios from "axios";
+
+const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
 
 const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
@@ -10,29 +11,29 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
   useEffect(() => {
     const handleOAuthCallback = async () => {
       try {
-        // Get Supabase session
-        const session = await getCurrentSession();
-        
-        if (!session) {
-          throw new Error("No session found");
+        const params = new URLSearchParams(window.location.search);
+        const error = params.get("error");
+
+        if (error) {
+          throw new Error(error);
         }
 
-        const user = session.user;
-        
-        // Send Supabase session to backend to verify and get our own JWT
+        const email = params.get("email") || "";
+        if (!email) {
+          throw new Error("Missing email in OAuth response");
+        }
+
         const response = await axios.post(
-          "http://localhost:8080/api/auth/oauth/callback",
+          `${backendBaseUrl}/api/auth/oauth/callback`,
           {
-            supabaseAccessToken: session.access_token,
-            email: user.email,
-            firstName: user.user_metadata?.full_name?.split(' ')[0] || user.user_metadata?.name || "User",
-            lastName: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || "",
-            profileImage: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
-            provider: user.app_metadata?.provider || "supabase"
+            email,
+            firstName: params.get("firstName") || "User",
+            lastName: params.get("lastName") || "",
+            profileImage: params.get("picture") || "",
+            provider: params.get("provider") || "google"
           }
         );
 
-        // Store user data from backend response
         const userData = {
           userId: response.data.userId,
           email: response.data.email,
@@ -48,8 +49,7 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
         if (typeof onLoginSuccess === "function") {
           onLoginSuccess();
         }
-        
-        // Store backend JWT if provided
+
         if (response.data.token) {
           localStorage.setItem("token", response.data.token);
         }

@@ -3,19 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import LoginPage from "./jsx/LoginPage";
 import RegisterPage from "./jsx/RegisterPage";
 import Dashboard from "./jsx/Dashboard";
-import Books from "./jsx/Books";
-import BookDetails from "./jsx/BookDetails";
-import AddBooks from "./jsx/AddBooks";
-import Profile from "./jsx/Profile";
 import OAuth2RedirectHandler from "./jsx/OAuth2RedirectHandler";
-import AdminPanel from "./jsx/AdminPanel";
-import AccessDenied from "./jsx/AccessDenied";
-
-const hasAdminRole = () => {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-  const roles = user?.roles || [];
-  return roles.includes("ROLE_ADMIN");
-};
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem("user")));
@@ -49,9 +37,6 @@ function App() {
               path="/"
               element={
                 <LoginPage
-                  onShowRegister={(show) => {
-                    /* Router handles this */
-                  }}
                   onLoginSuccess={handleLoginSuccess}
                 />
               }
@@ -60,9 +45,6 @@ function App() {
               path="/register"
               element={
                 <RegisterPage
-                  onShowLogin={(show) => {
-                    /* Router handles this */
-                  }}
                   onRegisterSuccess={handleRegisterSuccess}
                 />
               }
@@ -75,26 +57,6 @@ function App() {
               path="/dashboard"
               element={<Dashboard onLogout={handleLogout} />}
             />
-            <Route path="/books" element={<Books onLogout={handleLogout} mode="completed" />} />
-            <Route path="/to-read" element={<Books onLogout={handleLogout} mode="to-read" />} />
-            <Route path="/reading" element={<Books onLogout={handleLogout} mode="reading" />} />
-            <Route
-              path="/books/:id"
-              element={<BookDetails onLogout={handleLogout} />}
-            />
-            <Route
-              path="/add-book"
-              element={<AddBooks onLogout={handleLogout} />}
-            />
-            <Route
-              path="/profile"
-              element={<Profile onLogout={handleLogout} />}
-            />
-            <Route
-              path="/admin"
-              element={hasAdminRole() ? <AdminPanel onLogout={handleLogout} /> : <Navigate to="/forbidden" replace />}
-            />
-            <Route path="/forbidden" element={<AccessDenied />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>

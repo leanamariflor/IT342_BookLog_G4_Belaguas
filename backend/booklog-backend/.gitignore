@@ -1,33 +1,4 @@
 # =========================
-# Node / React
-# =========================
-node_modules/
-dist/
-dist-ssr/
-.env
-.env.*
-*.local
-
-# =========================
-# Logs
-# =========================
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# =========================
-# Editor
-# =========================
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-
-
-# =========================
 
 # Maven / Build
 
@@ -92,7 +63,7 @@ HELP.md
 
 # =========================
 
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -128,3 +99,17 @@ build/
 
 .DS_Store
 Thumbs.db
+
+# Node
+node_modules/
+
+# Build
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+
+# Env
+.env

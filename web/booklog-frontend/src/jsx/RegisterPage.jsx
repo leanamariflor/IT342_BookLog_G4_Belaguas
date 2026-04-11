@@ -4,9 +4,7 @@ import "../css/RegisterPage.css";
 import logo from "../assets/logo1.png";
 import { handleRegister } from "../scripts/Register";
 
-const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
-
-function RegisterPage({ onRegisterSuccess }) {
+function RegisterPage({ onShowLogin, onRegisterSuccess }) {
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
@@ -14,9 +12,10 @@ function RegisterPage({ onRegisterSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [authNotice, setAuthNotice] = useState(null);
 
   const submitForm = async (e) => {
-    const success = await handleRegister(e, {
+    const result = await handleRegister(e, {
       firstName,
       lastName,
       email,
@@ -24,16 +23,14 @@ function RegisterPage({ onRegisterSuccess }) {
       confirmPassword
     });
 
-    if (success) {
+    setAuthNotice(result?.message ? { message: result.message, type: result.type || "info" } : null);
+
+    if (result?.success) {
       if (typeof onRegisterSuccess === "function") {
         onRegisterSuccess();
       }
       navigate("/dashboard");
     }
-  };
-
-  const handleGoogleSignup = async () => {
-    window.location.href = `${backendBaseUrl}/oauth2/authorization/google`;
   };
 
   return (
@@ -47,6 +44,8 @@ function RegisterPage({ onRegisterSuccess }) {
 
         <h2>Create Account</h2>
         <p className="subtitle">Start tracking your reading journey</p>
+
+        {authNotice && <div className={`auth-notice ${authNotice.type}`}>{authNotice.message}</div>}
 
         <form onSubmit={submitForm}>
 
@@ -89,7 +88,7 @@ function RegisterPage({ onRegisterSuccess }) {
             Create Account
           </button>
 
-          <button type="button" className="google-btn" onClick={handleGoogleSignup}>
+          <button type="button" className="google-btn">
             Sign up with Google
           </button>
 

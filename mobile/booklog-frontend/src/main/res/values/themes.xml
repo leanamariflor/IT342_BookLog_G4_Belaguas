@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.BookLogMobile" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/booklog_primary</item>
+        <item name="colorOnPrimary">@color/booklog_on_primary</item>
+        <item name="colorPrimaryContainer">@color/booklog_primary_dark</item>
+        <item name="colorSecondary">@color/booklog_secondary</item>
+        <item name="colorTertiary">@color/booklog_secondary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/booklog_surface</item>
+        <item name="android:windowBackground">@color/booklog_background</item>
+    </style>
+
+    <style name="BookLogBottomNavText" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">10sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+</resources>

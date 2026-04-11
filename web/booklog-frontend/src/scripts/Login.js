@@ -5,8 +5,7 @@ export const handleLogin = async (e, email, password) => {
   e.preventDefault();
 
   if (!email || !password) {
-    alert("Please enter email and password");
-    return false;
+    return { success: false, message: "Please enter email and password", type: "warning" };
   }
 
   try {
@@ -27,6 +26,7 @@ export const handleLogin = async (e, email, password) => {
       lastName: userData.lastName,
       email: userData.email,
       profileImage: userData.profileImage,
+      createdAt: userData.createdAt,
       oauthProvider: userData.provider || null,
       roles: userData.roles || ["ROLE_USER"]
     }));
@@ -35,26 +35,34 @@ export const handleLogin = async (e, email, password) => {
       localStorage.setItem("token", userData.token);
     }
 
-    alert("Login successful!");
-
     console.log(response.data);
 
-    return true;
+    return { success: true, message: "Login successful!", type: "success" };
 
   } catch (error) {
 
     console.error("Login error:", error);
     if (error.response) {
       console.error("Response data:", error.response.data);
-      alert(error.response.data.message || "Login failed: server returned an error");
+      return {
+        success: false,
+        message: error.response.data.message || "Login failed: server returned an error",
+        type: "error"
+      };
     } else if (error.request) {
       console.error("No response received:", error.request);
-      alert("No response from server. Is the backend running at http://localhost:8080 ?");
+      return {
+        success: false,
+        message: "No response from server. Is the backend running at http://localhost:8080 ?",
+        type: "error"
+      };
     } else {
       console.error("Error setting up request:", error.message);
-      alert("Login error: " + error.message);
+      return {
+        success: false,
+        message: "Login error: " + error.message,
+        type: "error"
+      };
     }
-
-    return false;
   }
 };

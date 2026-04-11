@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
-
 const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState("Processing OAuth login...");
@@ -12,28 +10,39 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
     const handleOAuthCallback = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const error = params.get("error");
+        const errorParam = params.get("error");
 
-        if (error) {
-          throw new Error(error);
+        if (errorParam) {
+          throw new Error(errorParam);
         }
 
-        const email = params.get("email") || "";
+        const email = params.get("email");
+        const firstName = params.get("firstName") || "User";
+        const lastName = params.get("lastName") || "";
+        const picture = params.get("picture") || "";
+        const provider = params.get("provider") || "google";
+
         if (!email) {
-          throw new Error("Missing email in OAuth response");
+          throw new Error("Missing email from OAuth callback");
         }
-
+        
         const response = await axios.post(
-          `${backendBaseUrl}/api/auth/oauth/callback`,
+          "http://localhost:8080/api/auth/oauth/callback",
           {
             email,
-            firstName: params.get("firstName") || "User",
-            lastName: params.get("lastName") || "",
-            profileImage: params.get("picture") || "",
-            provider: params.get("provider") || "google"
+            firstName,
+            lastName,
+            profileImage: picture,
+            provider
           }
         );
 
+        // Store backend JWT if provided (ALWAYS store token first)
+        if (response.data.token) {
+          localStorage.setItem("token", response.data.token);
+        }
+
+        // Store user data from backend response
         const userData = {
           userId: response.data.userId,
           email: response.data.email,
@@ -43,15 +52,11 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
           oauthProvider: response.data.provider,
           roles: response.data.roles || ["ROLE_USER"]
         };
-        
         localStorage.setItem("user", JSON.stringify(userData));
 
+        // Only call onLoginSuccess after token and user are set
         if (typeof onLoginSuccess === "function") {
           onLoginSuccess();
-        }
-
-        if (response.data.token) {
-          localStorage.setItem("token", response.data.token);
         }
         
         setStatus("Login successful! Redirecting...");

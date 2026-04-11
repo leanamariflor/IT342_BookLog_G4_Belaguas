@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private static final int OAUTH_PROVIDER_MAX_LENGTH = 50;
-    private static final int PROFILE_IMAGE_MAX_LENGTH = 50;
+    private static final int PROFILE_IMAGE_MAX_LENGTH = 500;
 
     private final UserRepository userRepository;
 
@@ -53,7 +53,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         if (user.getOauthProvider() == null || !user.getOauthProvider().equals(normalizedProvider)) {
             user.setOauthProvider(normalizedProvider);
         }
-        if (user.getProfileImage() == null || !user.getProfileImage().equals(normalizedPicture)) {
+        boolean hasUploadedProfileImage = user.getProfileImage() != null && user.getProfileImage().startsWith("profiles/");
+        if (!hasUploadedProfileImage && (user.getProfileImage() == null || !user.getProfileImage().equals(normalizedPicture))) {
             user.setProfileImage(normalizedPicture);
         }
         userRepository.save(user);

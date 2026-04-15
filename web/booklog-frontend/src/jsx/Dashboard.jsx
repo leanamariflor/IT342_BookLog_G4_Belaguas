@@ -233,16 +233,16 @@ const Dashboard = ({ onLogout }) => {
     <div className="dashboard-container">
       <Sidebar activePage="dashboard" onLogout={onLogout} />
 
-      {/* Main Content */}
+     
       <main className="main-content">
 
-        {/* Greeting */}
+       
         <div className="greeting">
           <h1>Welcome Back, {userName}!</h1>
           <p>Keep up your reading journey and reach your goals</p>
         </div>
 
-        {/* Stats Grid */}
+       
         <div className="stats-grid">
           <div className="stat-card stat-blue" {...toCardProps("/books")}>
             <div className="stat-header">
@@ -277,7 +277,7 @@ const Dashboard = ({ onLogout }) => {
           </div>
         </div>
 
-   {/* Books Later Section */}
+  
         <div className="later-section">
           <div className="later-header">
             <h3>Books to Read Later</h3>

@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export const handleLogin = async (e, email, password) => {
 
   e.preventDefault();
@@ -11,7 +13,7 @@ export const handleLogin = async (e, email, password) => {
   try {
 
     const response = await axios.post(
-      "http://localhost:8080/api/auth/login",
+      `${baseUrl}/api/auth/login`,
       {
         email,
         password

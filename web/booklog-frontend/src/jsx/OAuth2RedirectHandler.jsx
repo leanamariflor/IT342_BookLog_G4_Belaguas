@@ -49,8 +49,7 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
           firstName: response.data.firstName,
           lastName: response.data.lastName,
           profileImage: response.data.profileImage,
-          oauthProvider: response.data.provider,
-          roles: response.data.roles || ["ROLE_USER"]
+          roles: response.data.roles || ["ROLE_USER"],
         };
         localStorage.setItem("user", JSON.stringify(userData));
 
@@ -61,7 +60,7 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
         
         setStatus("Login successful! Redirecting...");
         setTimeout(() => navigate("/dashboard"), 1000);
-        
+
       } catch (error) {
         console.error("OAuth callback error:", error);
         setStatus("OAuth login failed: " + (error.response?.data?.message || error.message));

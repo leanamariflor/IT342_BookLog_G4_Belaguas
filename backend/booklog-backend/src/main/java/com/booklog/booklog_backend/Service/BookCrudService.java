@@ -1,8 +1,10 @@
 package com.booklog.booklog_backend.Service;
 
 import com.booklog.booklog_backend.Dto.BookCreateRequest;
+import com.booklog.booklog_backend.Dto.BookNotePayload;
 import com.booklog.booklog_backend.Dto.BookUpdateRequest;
 import com.booklog.booklog_backend.Model.Book;
+import com.booklog.booklog_backend.Model.BookNote;
 import com.booklog.booklog_backend.Model.User;
 import com.booklog.booklog_backend.Repository.BookRepository;
 import com.booklog.booklog_backend.Repository.UserRepository;
@@ -18,6 +20,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,6 +52,9 @@ public class BookCrudService {
         book.setDescription(trimToNull(request.getDescription()));
         book.setRating(request.getRating());
         book.setCoverImageUrl(trimToNull(request.getCoverImageUrl()));
+        book.setReview(trimToNull(request.getReview()));
+        book.setDateStarted(request.getDateStarted());
+        book.setDateCompleted(request.getDateCompleted());
 
         return bookRepository.save(book);
     }
@@ -90,6 +98,39 @@ public class BookCrudService {
 
         if (request.getCoverImageUrl() != null) {
             book.setCoverImageUrl(trimToNull(request.getCoverImageUrl()));
+        }
+
+        if (request.getReview() != null) {
+            book.setReview(trimToNull(request.getReview()));
+        }
+
+        if (request.getDateStarted() != null) {
+            book.setDateStarted(request.getDateStarted());
+        }
+
+        if (request.getDateCompleted() != null) {
+            book.setDateCompleted(request.getDateCompleted());
+        }
+
+        if (request.getNotes() != null) {
+            book.getNotes().clear();
+            for (BookNotePayload notePayload : request.getNotes()) {
+                if (notePayload == null) {
+                    continue;
+                }
+
+                String trimmedText = trimToNull(notePayload.getText());
+                if (trimmedText == null) {
+                    continue;
+                }
+
+                BookNote note = new BookNote();
+                note.setBook(book);
+                note.setNoteContent(trimmedText);
+                note.setCreatedAt(parseDateOrNow(notePayload.getDate()));
+                note.setIsFavorited(Boolean.TRUE.equals(notePayload.getIsFavorited()));
+                book.getNotes().add(note);
+            }
         }
 
         return bookRepository.save(book);
@@ -170,6 +211,22 @@ public class BookCrudService {
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+    }
+
+    private LocalDateTime parseDateOrNow(String value) {
+        if (value == null || value.isBlank()) {
+            return LocalDateTime.now();
+        }
+
+        try {
+            return LocalDateTime.parse(value);
+        } catch (Exception ignored) {
+            try {
+                return LocalDateTime.ofInstant(Instant.parse(value), ZoneOffset.UTC);
+            } catch (Exception ignoredAgain) {
+                return LocalDateTime.now();
+            }
+        }
     }
 
     private void deleteAttachmentIfExists(String attachmentPath) {

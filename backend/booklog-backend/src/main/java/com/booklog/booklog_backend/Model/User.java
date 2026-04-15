@@ -26,7 +26,7 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(name = "profile_image", length = 50)
+    @Column(name = "profile_image", length = 500)
     private String profileImage;
 
     @Column(name = "oauth_provider", length = 50)
@@ -45,12 +45,6 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "roleID")
     )
     private Set<Role> roles = new HashSet<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Book> books = new HashSet<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RefreshToken> refreshTokens = new HashSet<>();
 
     // Constructors
     public User() {
@@ -150,22 +144,6 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
-    }
-
-    public Set<Book> getBooks() {
-        return books;
-    }
-
-    public void setBooks(Set<Book> books) {
-        this.books = books;
-    }
-
-    public Set<RefreshToken> getRefreshTokens() {
-        return refreshTokens;
-    }
-
-    public void setRefreshTokens(Set<RefreshToken> refreshTokens) {
-        this.refreshTokens = refreshTokens;
     }
 
     @PreUpdate

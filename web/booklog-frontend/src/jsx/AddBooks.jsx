@@ -1,10 +1,12 @@
-import React, { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import "../css/AddBooks.css";
-import { createBook, getUserBooks, searchBooks, uploadBookAttachment } from "../services/BookService";
+import { createBook, searchBooks, updateBook, uploadBookAttachment } from "../services/BookService";
+import { toAbsoluteMediaUrl } from "../utils/mediaUrl";
 
 const AddBook = ({ onLogout }) => {
+  const location = useLocation();
   const navigate = useNavigate();
   const PLACEHOLDER_COVER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='300'><rect width='100%25' height='100%25' fill='%23e5e7eb'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%236b7280' font-family='Arial' font-size='20'>No Cover</text></svg>";
   const [activeTab, setActiveTab] = useState("manual");
@@ -14,8 +16,7 @@ const AddBook = ({ onLogout }) => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isManualSubmitting, setIsManualSubmitting] = useState(false);
-  const [addingBookKeys, setAddingBookKeys] = useState([]);
-  const addingBookKeysRef = useRef(new Set());
+  const [prefilledFromSearch, setPrefilledFromSearch] = useState(false);
 
   const [manualTitle, setManualTitle] = useState("");
   const [manualAuthor, setManualAuthor] = useState("");
@@ -23,7 +24,63 @@ const AddBook = ({ onLogout }) => {
   const [manualDescription, setManualDescription] = useState("");
   const [manualImageFile, setManualImageFile] = useState(null);
   const [manualImagePreview, setManualImagePreview] = useState("");
+  const [manualCoverImageUrl, setManualCoverImageUrl] = useState("");
+  const [toast, setToast] = useState(null);
+  const [editingBookRef, setEditingBookRef] = useState(null);
   const manualImageInputRef = useRef(null);
+  const toastTimerRef = useRef(null);
+
+  const isEditingExistingBook = Boolean(editingBookRef);
+
+  const showToast = (message, type = "info", duration = 2600, details = {}) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    setToast({ message, type, ...details });
+    toastTimerRef.current = setTimeout(() => {
+      setToast(null);
+    }, duration);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const incomingEditBook = location.state?.editBook;
+    if (!incomingEditBook) {
+      return;
+    }
+
+    setEditingBookRef({
+      id: incomingEditBook.id,
+      bookId: incomingEditBook.bookId || null,
+      status: incomingEditBook.status || "To Read",
+      sourceType: incomingEditBook.sourceType || "manual",
+    });
+    setPrefilledFromSearch(false);
+    setActiveTab("manual");
+    setManualTitle(incomingEditBook.title || "");
+    setManualAuthor(
+      incomingEditBook.author ||
+        (Array.isArray(incomingEditBook.authors) ? incomingEditBook.authors.join(", ") : "")
+    );
+    setManualStatus(incomingEditBook.status || "To Read");
+    setManualDescription(incomingEditBook.description || "");
+    setManualImageFile(null);
+
+    const existingPreview =
+      incomingEditBook.image ||
+      toAbsoluteMediaUrl(incomingEditBook.coverImageUrl) ||
+      PLACEHOLDER_COVER;
+
+    setManualImagePreview(existingPreview);
+    setManualCoverImageUrl(toAbsoluteMediaUrl(incomingEditBook.coverImageUrl) || "");
+  }, [location.state, PLACEHOLDER_COVER]);
 
   const fileToDataUrl = (file) => {
     return new Promise((resolve, reject) => {
@@ -51,21 +108,16 @@ const AddBook = ({ onLogout }) => {
     });
   };
 
-  const getBookCardKey = (bookTitle, authors) => {
-    const authorText = Array.isArray(authors) && authors.length > 0 ? authors.join(", ") : "";
-    return `${normalizeText(bookTitle)}|${normalizeText(authorText)}`;
-  };
-
-  const isBookBeingAdded = (book) => addingBookKeysRef.current.has(getBookCardKey(book.title, book.authors));
-
   const handleManualImageSelection = async (file) => {
     if (!file) {
       setManualImageFile(null);
       setManualImagePreview("");
+      setManualCoverImageUrl("");
       return;
     }
 
     setManualImageFile(file);
+    setManualCoverImageUrl("");
     const previewData = await fileToDataUrl(file);
     setManualImagePreview(previewData);
   };
@@ -78,30 +130,51 @@ const AddBook = ({ onLogout }) => {
     }
 
     if (!manualTitle.trim()) {
-      alert("Title is required.");
+      showToast("Title is required.", "warning");
       return;
     }
 
     try {
       setIsManualSubmitting(true);
-      let imageDataUrl = PLACEHOLDER_COVER;
-      if (manualImageFile) {
-        imageDataUrl = manualImagePreview || (await fileToDataUrl(manualImageFile));
+      const savedBooks = JSON.parse(localStorage.getItem("userBooks")) || [];
+
+      if (!isEditingExistingBook && hasDuplicateInList(savedBooks, manualTitle, manualAuthor)) {
+        showToast("This book is already in your collection.", "warning");
+        return;
+      }
+
+      let imageDataUrl = manualImagePreview || manualCoverImageUrl || PLACEHOLDER_COVER;
+      if (manualImageFile && !manualImagePreview) {
+        imageDataUrl = await fileToDataUrl(manualImageFile);
       }
 
       let backendBook = null;
       let uploadedBook = null;
       const token = localStorage.getItem("token");
+      const backendTargetBookId = editingBookRef?.bookId || null;
 
-      // Persist to backend when authenticated so file upload requirement is met.
-      if (token) {
+      if (isEditingExistingBook) {
+        if (token && backendTargetBookId) {
+          backendBook = await updateBook(backendTargetBookId, {
+            title: manualTitle,
+            author: manualAuthor || null,
+            status: manualStatus,
+            description: manualDescription || null,
+            coverImageUrl: manualImageFile ? null : manualCoverImageUrl || null
+          });
+
+          if (manualImageFile) {
+            uploadedBook = await uploadBookAttachment(backendTargetBookId, manualImageFile);
+          }
+        }
+      } else if (token) {
         backendBook = await createBook({
           title: manualTitle,
           author: manualAuthor || null,
           status: manualStatus,
           description: manualDescription || null,
           rating: null,
-          coverImageUrl: null
+          coverImageUrl: manualImageFile ? null : manualCoverImageUrl || null
         });
 
         if (manualImageFile && backendBook?.bookId) {
@@ -109,35 +182,69 @@ const AddBook = ({ onLogout }) => {
         }
       }
 
-      const savedBooks = JSON.parse(localStorage.getItem("userBooks")) || [];
-      if (hasDuplicateInList(savedBooks, manualTitle, manualAuthor)) {
-        alert("This book is already in your collection.");
-        return;
-      }
-
       const now = new Date().toISOString().split("T")[0];
       const latestBookData = uploadedBook || backendBook;
+      const persistedServerImage = toAbsoluteMediaUrl(latestBookData?.attachmentUrl || latestBookData?.coverImageUrl) || null;
+      const persistedImage = token
+        ? persistedServerImage || imageDataUrl || PLACEHOLDER_COVER
+        : imageDataUrl || persistedServerImage || PLACEHOLDER_COVER;
 
-      const newBook = {
-        id: Date.now(),
-        bookId: latestBookData?.bookId || null,
-        title: manualTitle,
-        image: latestBookData?.attachmentUrl || latestBookData?.coverImageUrl || imageDataUrl,
-        authors: manualAuthor ? [manualAuthor] : [],
-        description: manualDescription || "No description available",
-        favorite: false,
-        rating: 0,
-        status: manualStatus,
-        dateAdded: now,
-        dateUpdated: now,
-        attachmentUrl: latestBookData?.attachmentUrl || (latestBookData?.bookId ? `/api/books/${latestBookData.bookId}/attachment` : null),
-        coverImageUrl: latestBookData?.coverImageUrl || null,
-        attachmentOriginalName: latestBookData?.attachmentOriginalName || null,
-        attachmentContentType: latestBookData?.attachmentContentType || null
-      };
+      if (isEditingExistingBook) {
+        const updatedBooks = savedBooks.map((existingBook) => {
+          const sameId = String(existingBook.id) === String(editingBookRef.id);
+          const sameBookId =
+            editingBookRef.bookId && String(existingBook.bookId) === String(editingBookRef.bookId);
 
-      savedBooks.push(newBook);
-      localStorage.setItem("userBooks", JSON.stringify(savedBooks));
+          if (!sameId && !sameBookId) {
+            return existingBook;
+          }
+
+          return {
+            ...existingBook,
+            title: manualTitle,
+            authors: manualAuthor ? [manualAuthor] : [],
+            author: manualAuthor || null,
+            description: manualDescription || "No description available",
+            status: manualStatus,
+            image: persistedImage,
+            dateUpdated: now,
+            bookId: latestBookData?.bookId || existingBook.bookId || editingBookRef.bookId || null,
+            attachmentUrl: toAbsoluteMediaUrl(
+              latestBookData?.attachmentUrl ||
+                existingBook.attachmentUrl ||
+                (latestBookData?.bookId ? `/api/books/${latestBookData.bookId}/attachment` : null)
+            ),
+            coverImageUrl: toAbsoluteMediaUrl(latestBookData?.coverImageUrl) || existingBook.coverImageUrl || null,
+            attachmentOriginalName: latestBookData?.attachmentOriginalName || existingBook.attachmentOriginalName || null,
+            attachmentContentType: latestBookData?.attachmentContentType || existingBook.attachmentContentType || null,
+            sourceType: existingBook.sourceType || editingBookRef.sourceType || "manual"
+          };
+        });
+
+        localStorage.setItem("userBooks", JSON.stringify(updatedBooks));
+      } else {
+        const newBook = {
+          id: Date.now(),
+          bookId: latestBookData?.bookId || null,
+          title: manualTitle,
+          image: persistedImage,
+          authors: manualAuthor ? [manualAuthor] : [],
+          description: manualDescription || "No description available",
+          favorite: false,
+          rating: 0,
+          status: manualStatus,
+          dateAdded: now,
+          dateUpdated: now,
+          attachmentUrl: toAbsoluteMediaUrl(latestBookData?.attachmentUrl || (latestBookData?.bookId ? `/api/books/${latestBookData.bookId}/attachment` : null)),
+          coverImageUrl: toAbsoluteMediaUrl(latestBookData?.coverImageUrl) || null,
+          attachmentOriginalName: latestBookData?.attachmentOriginalName || null,
+          attachmentContentType: latestBookData?.attachmentContentType || null,
+          sourceType: prefilledFromSearch ? "search" : "manual"
+        };
+
+        savedBooks.push(newBook);
+        localStorage.setItem("userBooks", JSON.stringify(savedBooks));
+      }
 
       setManualTitle("");
       setManualAuthor("");
@@ -145,12 +252,32 @@ const AddBook = ({ onLogout }) => {
       setManualDescription("");
       setManualImageFile(null);
       setManualImagePreview("");
+      setManualCoverImageUrl("");
 
-      alert("Book added successfully!");
-      navigate("/books");
+      showToast(
+        isEditingExistingBook ? "Book details updated." : "The book has been added.",
+        "success",
+        3800,
+        {
+          title: manualTitle,
+          image: persistedImage
+        }
+      );
+
+      if (isEditingExistingBook) {
+        const detailsTarget = editingBookRef?.id || editingBookRef?.bookId;
+        if (detailsTarget) {
+          setTimeout(() => {
+            navigate(`/books/${detailsTarget}`);
+          }, 450);
+        }
+      } else if (prefilledFromSearch) {
+        setActiveTab("search");
+        setPrefilledFromSearch(false);
+      }
     } catch (submitError) {
       console.error("Manual add error:", submitError);
-      alert(submitError.response?.data?.message || "Failed to add book. Please try again.");
+      showToast(submitError.response?.data?.message || "Failed to add book. Please try again.", "error");
     } finally {
       setIsManualSubmitting(false);
     }
@@ -200,80 +327,16 @@ const AddBook = ({ onLogout }) => {
     }
   };
 
-  const handleAddBook = async (book) => {
-    const authorText = book.authors && book.authors.length > 0 ? book.authors.join(", ") : "";
-    const cardKey = getBookCardKey(book.title, book.authors);
-
-    if (addingBookKeysRef.current.has(cardKey)) {
-      return;
-    }
-
-    addingBookKeysRef.current.add(cardKey);
-    setAddingBookKeys(Array.from(addingBookKeysRef.current));
-
-    try {
-      const token = localStorage.getItem("token");
-      const savedBooks = JSON.parse(localStorage.getItem("userBooks")) || [];
-
-      if (hasDuplicateInList(savedBooks, book.title, authorText)) {
-        alert(`"${book.title}" is already in your collection.`);
-        return;
-      }
-
-      if (token) {
-        const backendBooks = await getUserBooks();
-        if (hasDuplicateInList(backendBooks, book.title, authorText)) {
-          alert(`"${book.title}" is already in your collection.`);
-          return;
-        }
-      }
-      
-      // Save to backend database (authenticated users only)
-      let backendBook = null;
-      if (token) {
-        backendBook = await createBook({
-          title: book.title,
-          author: book.authors && book.authors.length > 0 ? book.authors.join(", ") : null,
-          status: "To Read",
-          description: book.description || null,
-          rating: null,
-          coverImageUrl: book.thumbnail || null
-        });
-      }
-      
-      const now = new Date().toISOString().split('T')[0];
-      
-      // Create new book object with all necessary fields
-      const newBook = {
-        id: Date.now(), // Use timestamp as unique ID
-        bookId: backendBook?.bookId || null,
-        title: book.title,
-        image: backendBook?.attachmentUrl || backendBook?.coverImageUrl || book.thumbnail || "https://picsum.photos/200/300?random=" + Date.now(),
-        authors: book.authors || [],
-        description: book.description || "No description available",
-        publisher: book.publisher || "",
-        publishedDate: book.publishedDate || "",
-        favorite: false,
-        rating: 0,
-        status: "To Read",
-        dateAdded: now,
-        dateUpdated: now,
-        coverImageUrl: backendBook?.coverImageUrl || book.thumbnail || null,
-      };
-      
-      // Add to saved books and save to localStorage
-      savedBooks.push(newBook);
-      localStorage.setItem("userBooks", JSON.stringify(savedBooks));
-      
-      // Show success message
-      alert(`"${book.title}" added to your collection!`);
-    } catch (err) {
-      console.error("Error adding book:", err);
-      alert(err.response?.data?.message || "Failed to add book. Please try again.");
-    } finally {
-      addingBookKeysRef.current.delete(cardKey);
-      setAddingBookKeys(Array.from(addingBookKeysRef.current));
-    }
+  const handlePrefillFromSearch = (book) => {
+    setPrefilledFromSearch(true);
+    setManualTitle(book.title || "");
+    setManualAuthor(book.authors && book.authors.length > 0 ? book.authors.join(", ") : "");
+    setManualStatus("To Read");
+    setManualDescription(book.description || "");
+    setManualImageFile(null);
+    setManualCoverImageUrl(book.thumbnail || "");
+    setManualImagePreview(book.thumbnail || "");
+    setActiveTab("manual");
   };
 
   return (
@@ -282,9 +345,34 @@ const AddBook = ({ onLogout }) => {
 
       <div className="add-book-page">
 
-        <h1>Add Book</h1>
+        {toast && (
+          <div className={`add-book-toast ${toast.type}`} role="status" aria-live="polite">
+            {toast.image ? (
+              <img
+                src={toast.image}
+                alt={toast.title || "Added book"}
+                className="add-book-toast-cover"
+              />
+            ) : null}
+            <div className="add-book-toast-content">
+              {toast.title ? <h4>{toast.title}</h4> : null}
+              <p>{toast.message}</p>
+            </div>
+            <button
+              type="button"
+              className="add-book-toast-close"
+              onClick={() => setToast(null)}
+              aria-label="Dismiss notification"
+            >
+              x
+            </button>
+          </div>
+        )}
+
+        <h1>{isEditingExistingBook ? "Edit Book" : "Add Book"}</h1>
 
         {/* Tabs */}
+        {!isEditingExistingBook && (
         <div className="tab-buttons">
          
 
@@ -297,15 +385,19 @@ const AddBook = ({ onLogout }) => {
 
            <button
             className={activeTab === "manual" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("manual")}
+            onClick={() => {
+              setPrefilledFromSearch(false);
+              setActiveTab("manual");
+            }}
           >
             Manual Entry
           </button>
         </div>
+        )}
 
        
         {/* Search Books */}
-        {activeTab === "search" && (
+        {!isEditingExistingBook && activeTab === "search" && (
           <div className="form-card search-card">
             <div className="search-input-container">
               <input
@@ -335,12 +427,8 @@ const AddBook = ({ onLogout }) => {
                       <div
                         key={book.id}
                         className="book-card"
-                        onClick={() => handleAddBook(book)}
-                        style={{
-                          cursor: isBookBeingAdded(book) ? "not-allowed" : "pointer",
-                          opacity: isBookBeingAdded(book) ? 0.65 : 1,
-                          pointerEvents: isBookBeingAdded(book) ? "none" : "auto"
-                        }}
+                        onClick={() => handlePrefillFromSearch(book)}
+                        style={{ cursor: "pointer" }}
                       >
                         <div className="book-image">
                           {book.thumbnail ? (
@@ -413,7 +501,7 @@ const AddBook = ({ onLogout }) => {
                     <div className="manual-upload-placeholder">
                       <span className="manual-upload-plus">+</span>
                       <span className="manual-upload-text">Click to add a cover or attachment</span>
-                      <span className="manual-upload-subtext">Saved file can be viewed and downloaded in Book Details</span>
+                      <span className="manual-upload-subtext">Add a file if you want a custom cover</span>
                     </div>
                   )}
                 </button>
@@ -476,7 +564,7 @@ const AddBook = ({ onLogout }) => {
               ></textarea>
 
               <button type="submit" className="primary-btn" disabled={isManualSubmitting}>
-                {isManualSubmitting ? "Adding..." : "Add Book"}
+                {isManualSubmitting ? (isEditingExistingBook ? "Saving..." : "Adding...") : (isEditingExistingBook ? "Save Changes" : "Add Book")}
               </button>
             </form>
           </div>

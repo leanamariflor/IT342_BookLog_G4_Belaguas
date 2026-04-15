@@ -18,6 +18,9 @@ public class BookNote {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "is_favorited", nullable = false)
+    private Boolean isFavorited = false;
+
     @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @JoinColumn(name = "bookID", nullable = false)
     private Book book;
@@ -68,5 +71,13 @@ public class BookNote {
 
     public void setBook(Book book) {
         this.book = book;
+    }
+
+    public Boolean getIsFavorited() {
+        return isFavorited;
+    }
+
+    public void setIsFavorited(Boolean isFavorited) {
+        this.isFavorited = isFavorited == null ? Boolean.FALSE : isFavorited;
     }
 }

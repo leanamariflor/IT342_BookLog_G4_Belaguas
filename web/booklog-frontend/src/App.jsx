@@ -10,6 +10,9 @@ import Profile from "./jsx/Profile";
 import OAuth2RedirectHandler from "./jsx/OAuth2RedirectHandler";
 import AdminPanel from "./jsx/AdminPanel";
 import AccessDenied from "./jsx/AccessDenied";
+import AnnualStatistics from "./jsx/AnnualStatistics";
+import BookCalendar from "./jsx/BookCalendar";
+import Notes from "./jsx/Notes";
 
 const hasAdminRole = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -18,14 +21,16 @@ const hasAdminRole = () => {
 };
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem("user")));
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => Boolean(localStorage.getItem("user")) && Boolean(localStorage.getItem("token"))
+  );
 
   const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
+    setIsAuthenticated(Boolean(localStorage.getItem("user")) && Boolean(localStorage.getItem("token")));
   };
 
   const handleRegisterSuccess = () => {
-    setIsAuthenticated(true);
+    setIsAuthenticated(Boolean(localStorage.getItem("user")) && Boolean(localStorage.getItem("token")));
   };
 
   const handleLogout = () => {
@@ -42,8 +47,8 @@ function App() {
           element={<OAuth2RedirectHandler onLoginSuccess={handleLoginSuccess} />}
         />
         <Route
-          path="/auth/callback"
-          element={<OAuth2RedirectHandler onLoginSuccess={handleLoginSuccess} />}
+          path="/notes/*"
+          element={isAuthenticated ? <Notes onLogout={handleLogout} /> : <Navigate to="/" replace />}
         />
         
         {!isAuthenticated ? (
@@ -91,6 +96,14 @@ function App() {
             <Route
               path="/profile"
               element={<Profile onLogout={handleLogout} />}
+            />
+            <Route
+              path="/reading-goal"
+              element={<AnnualStatistics onLogout={handleLogout} />}
+            />
+            <Route
+              path="/calendar"
+              element={<BookCalendar onLogout={handleLogout} />}
             />
             <Route
               path="/admin"

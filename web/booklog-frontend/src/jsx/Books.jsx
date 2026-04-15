@@ -2,68 +2,117 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/Books.css";
 import Sidebar from "./Sidebar";
+import PageLoader from "./PageLoader";
 import { getUserBooks } from "../services/BookService";
+import { toAbsoluteMediaUrl } from "../utils/mediaUrl";
+import api from "../api/axios";
 
 const Books = ({ onLogout, mode = "completed" }) => {
 
   const PLACEHOLDER_COVER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='300'><rect width='100%25' height='100%25' fill='%23e5e7eb'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%236b7280' font-family='Arial' font-size='20'>No Cover</text></svg>";
 
   const navigate = useNavigate();
+  const STATUS_BY_MODE = {
+    "to-read": "To Read",
+    reading: "Reading",
+    completed: "Completed",
+    "on-hold": "On Hold"
+  };
+  const ROUTE_BY_STATUS = {
+    "To Read": "/to-read",
+    Reading: "/reading",
+    Completed: "/books",
+    "On Hold": "/on-hold"
+  };
 
   const [books, setBooks] = useState([]);
   const [sortBy, setSortBy] = useState("New");
-  const [statusFilter, setStatusFilter] = useState("To Read");
+  const [selectedStatus, setSelectedStatus] = useState(STATUS_BY_MODE[mode] || "Completed");
   const [showRandomDraw, setShowRandomDraw] = useState(true);
   const [randomBook, setRandomBook] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Load books from backend database on mount
   useEffect(() => {
-    loadBooks();
-  }, []);
+    setSelectedStatus(STATUS_BY_MODE[mode] || "Completed");
+  }, [mode]);
 
-  const loadBooks = async () => {
+  // Load books from backend database on mount
+
+  useEffect(() => {
+    loadBooks(selectedStatus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStatus]);
+
+  const loadBooks = async (statusFilter) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      
       if (token) {
-        // Fetch from backend database (only accessible to authenticated user)
-        const backendBooks = await getUserBooks();
-        
-        // Transform backend books to match frontend format
-        const transformedBooks = backendBooks.map(book => ({
-          id: book.bookId,
-          bookId: book.bookId,
-          title: book.title,
-          image: book.attachmentUrl || book.coverImageUrl || PLACEHOLDER_COVER,
-          authors: book.author ? [book.author] : [],
-          description: book.description || "No description available",
-          favorite: false,
-          rating: book.rating || 0,
-          status: book.status || "To Read",
-          dateAdded: book.createdAt ? new Date(book.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          dateUpdated: book.updatedAt ? new Date(book.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          coverImageUrl: book.coverImageUrl,
-          attachmentUrl: book.attachmentUrl,
-          attachmentOriginalName: book.attachmentOriginalName,
-          attachmentContentType: book.attachmentContentType
+        // Fetch from backend database with status filter
+        const backendBooks = await getUserBooks(statusFilter);
+        const transformedBooks = await Promise.all(backendBooks.map(async (book) => {
+          let resolvedImage = toAbsoluteMediaUrl(book.coverImageUrl) || PLACEHOLDER_COVER;
+          if (book.attachmentUrl && book.bookId) {
+            try {
+              const response = await api.get(`/books/${book.bookId}/attachment`, {
+                responseType: "blob"
+              });
+              resolvedImage = URL.createObjectURL(response.data);
+            } catch (attachmentError) {
+              console.error("Unable to load attachment preview for book", book.bookId, attachmentError);
+            }
+          }
+          return {
+            id: book.bookId,
+            bookId: book.bookId,
+            title: book.title,
+            image: resolvedImage,
+            authors: book.author ? [book.author] : [],
+            description: book.description || "No description available",
+            notes: Array.isArray(book.notes)
+              ? book.notes.map((note) => ({
+                  id: note.id || Date.now() + Math.random(),
+                  text: note.text || "",
+                  date: note.date || new Date().toISOString(),
+                  isFavorited: Boolean(note.isFavorited)
+                }))
+              : [],
+            favorite: false,
+            rating: book.rating || 0,
+            status: book.status || "To Read",
+            dateAdded: book.createdAt ? new Date(book.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            dateUpdated: book.updatedAt ? new Date(book.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            coverImageUrl: toAbsoluteMediaUrl(book.coverImageUrl) || null,
+            attachmentUrl: toAbsoluteMediaUrl(book.attachmentUrl) || null,
+            attachmentOriginalName: book.attachmentOriginalName,
+            attachmentContentType: book.attachmentContentType
+          };
         }));
-        
         setBooks(transformedBooks);
-        // Sync with localStorage for offline access
         localStorage.setItem("userBooks", JSON.stringify(transformedBooks));
       } else {
         // Fallback to localStorage if not authenticated
         const savedBooks = JSON.parse(localStorage.getItem("userBooks")) || [];
-        setBooks(savedBooks);
+        const normalizedBooks = savedBooks.map((book) => ({
+          ...book,
+          image: toAbsoluteMediaUrl(book.image) || PLACEHOLDER_COVER,
+          coverImageUrl: toAbsoluteMediaUrl(book.coverImageUrl) || null,
+          attachmentUrl: toAbsoluteMediaUrl(book.attachmentUrl) || null
+        }));
+        setBooks(normalizedBooks);
       }
     } catch (error) {
       console.error("Error loading books:", error);
       // Fallback to localStorage on error
       const savedBooks = JSON.parse(localStorage.getItem("userBooks")) || [];
-      setBooks(savedBooks);
+      const normalizedBooks = savedBooks.map((book) => ({
+        ...book,
+        image: toAbsoluteMediaUrl(book.image) || PLACEHOLDER_COVER,
+        coverImageUrl: toAbsoluteMediaUrl(book.coverImageUrl) || null,
+        attachmentUrl: toAbsoluteMediaUrl(book.attachmentUrl) || null
+      }));
+      setBooks(normalizedBooks);
     } finally {
       setLoading(false);
     }
@@ -97,18 +146,10 @@ const Books = ({ onLogout, mode = "completed" }) => {
     }
   };
 
-  const scopedBooks = books.filter((book) => {
-    if (mode === "to-read") {
-      return book.status === "To Read";
-    } else if (mode === "reading") {
-      return book.status === "Reading";
-    } else {
-      return book.status === "Completed";
-    }
-  });
+  const scopedBooks = books.filter((book) => book.status === selectedStatus);
 
   const searchedBooks = scopedBooks.filter((book) => {
-    if ((mode === "to-read" || mode === "reading") && searchQuery.trim()) {
+    if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const titleMatch = book.title.toLowerCase().includes(query);
       const authorMatch = book.authors && book.authors.some(author => author.toLowerCase().includes(query));
@@ -118,13 +159,23 @@ const Books = ({ onLogout, mode = "completed" }) => {
   });
 
   const sortedBooks = sortBooks(searchedBooks, sortBy);
-  const pageTitle = mode === "to-read" ? "Books to read later" : mode === "reading" ? "Currently Reading" : "My Books";
-  const emptyMessage =
-    mode === "to-read"
-      ? "No books in To Read yet. Start by adding a book!"
-      : mode === "reading"
-      ? "No books currently reading. Start a book!"
-      : "No completed books yet. Complete a book to show it here!";
+  let pageTitle = "My Books";
+  if (selectedStatus === "To Read") pageTitle = "Books to Read Later";
+  else if (selectedStatus === "Reading") pageTitle = "Currently Reading";
+  else if (selectedStatus === "On Hold") pageTitle = "On Hold";
+  else if (selectedStatus === "Completed") pageTitle = "Completed Books";
+
+  let emptyMessage = "No books yet.";
+  if (selectedStatus === "To Read") emptyMessage = "No books in To Read yet. Start by adding a book!";
+  else if (selectedStatus === "Reading") emptyMessage = "No books currently reading. Start a book!";
+  else if (selectedStatus === "On Hold") emptyMessage = "No books on hold. Put a book on hold to show it here!";
+  else if (selectedStatus === "Completed") emptyMessage = "No completed books yet. Complete a book to show it here!";
+
+  const handleStatusChange = (nextStatus) => {
+    setSelectedStatus(nextStatus);
+    // Optionally update the route if you want, but not required for filtering
+    // navigate(ROUTE_BY_STATUS[nextStatus] || "/books");
+  };
 
   const handleRandomDraw = () => {
     if (scopedBooks.length > 0) {
@@ -133,17 +184,26 @@ const Books = ({ onLogout, mode = "completed" }) => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <Sidebar activePage="books" onLogout={onLogout} />
+        <div className="books-page">
+          <PageLoader message="Loading your books..." />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-container">
       <Sidebar activePage="books" onLogout={onLogout} />
       
       <div className="books-page">
-      {(mode === "to-read" || mode === "reading") && (
         <div className="books-intro">
           <h1>{pageTitle}</h1>
           <p className="books-count">There are {scopedBooks.length} books.</p>
-        </div>
-      )}      {(mode === "to-read" || mode === "reading") && (
+        </div>      
         <div className="search-section">
           <input
             type="text"
@@ -152,6 +212,16 @@ const Books = ({ onLogout, mode = "completed" }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          <select
+            className="status-dropdown"
+            value={selectedStatus}
+            onChange={(e) => handleStatusChange(e.target.value)}
+          >
+            <option value="To Read">To Read</option>
+            <option value="Reading">Reading</option>
+            <option value="On Hold">On Hold</option>
+            <option value="Completed">Finished</option>
+          </select>
           <select
             className="status-dropdown"
             value={sortBy}
@@ -165,44 +235,16 @@ const Books = ({ onLogout, mode = "completed" }) => {
             <option value="Author (Z-A)">Author (Z-A)</option>
           </select>
         </div>
-      )}      {mode !== "to-read" && mode !== "reading" && (
-      <div className="books-header">
-        <div className="books-title-group">
-          <h1>{pageTitle}</h1>
-          {mode === "completed" && (
-            <p className="books-read-total">you read {books.filter(b => b.status === "Completed").length} books!</p>
-          )}
-        </div>
-        <div className="books-controls">
-          <select
-            className="status-dropdown"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="Recently Updated">Recently Updated</option>
-            <option value="Recently Added">Recently Added</option>
-            <option value="Star Rating (High to Low)">Star Rating (High to Low)</option>
-            <option value="Star Rating (Low to High)">Star Rating (Low to High)</option>
-            <option value="Title (A-Z)">Title (A-Z)</option>
-            <option value="Title (Z-A)">Title (Z-A)</option>
-          </select>
-        </div>
-      </div>
-      )}
 
       <div className="books-grid">
-        {mode === "to-read" && !loading && (
+        {selectedStatus === "To Read" && !loading && (
           <button className="book-card add-book-card" onClick={() => navigate("/add-book")}>
             <div className="add-book-plus">+</div>
             <p className="book-title add-book-title">Add Book</p>
           </button>
         )}
 
-        {loading ? (
-          <div className="loading-state">
-            <p>Loading your books...</p>
-          </div>
-        ) : sortedBooks.length > 0 ? (
+        {sortedBooks.length > 0 ? (
           <>
             {sortedBooks.map((book) => (
               <div key={book.id} className="book-card" onClick={() => navigate(`/books/${book.id}`)}>
@@ -215,7 +257,7 @@ const Books = ({ onLogout, mode = "completed" }) => {
                       event.currentTarget.src = PLACEHOLDER_COVER;
                     }}
                   />
-                  {mode !== "to-read" && mode !== "reading" && (
+                  {selectedStatus === "Completed" && (
                     <div className="star-rating">
                       {[...Array(5)].map((_, i) => (
                         <span key={i} className={i < book.rating ? "book-star filled" : "book-star"}>
@@ -230,7 +272,7 @@ const Books = ({ onLogout, mode = "completed" }) => {
             ))}
           </>
         ) : (
-          mode === "to-read" ? (
+          selectedStatus === "To Read" ? (
             <div className="empty-state">
               <p>{emptyMessage}</p>
             </div>

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 public class BookCreateRequest {
 
     @NotBlank(message = "Title is required")
@@ -26,6 +28,13 @@ public class BookCreateRequest {
 
     @Size(max = 1000, message = "Cover image URL must be at most 1000 characters")
     private String coverImageUrl;
+
+    @Size(max = 5000, message = "Review must be at most 5000 characters")
+    private String review;
+
+    private LocalDate dateStarted;
+
+    private LocalDate dateCompleted;
 
     public String getTitle() {
         return title;
@@ -73,5 +82,29 @@ public class BookCreateRequest {
 
     public void setCoverImageUrl(String coverImageUrl) {
         this.coverImageUrl = coverImageUrl;
+    }
+
+    public String getReview() {
+        return review;
+    }
+
+    public void setReview(String review) {
+        this.review = review;
+    }
+
+    public LocalDate getDateStarted() {
+        return dateStarted;
+    }
+
+    public void setDateStarted(LocalDate dateStarted) {
+        this.dateStarted = dateStarted;
+    }
+
+    public LocalDate getDateCompleted() {
+        return dateCompleted;
+    }
+
+    public void setDateCompleted(LocalDate dateCompleted) {
+        this.dateCompleted = dateCompleted;
     }
 }

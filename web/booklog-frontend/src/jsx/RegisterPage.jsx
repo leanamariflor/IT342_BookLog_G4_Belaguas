@@ -13,6 +13,7 @@ function RegisterPage({ onShowLogin, onRegisterSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [authNotice, setAuthNotice] = useState(null);
 
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -21,7 +22,7 @@ function RegisterPage({ onShowLogin, onRegisterSuccess }) {
   };
 
   const submitForm = async (e) => {
-    const success = await handleRegister(e, {
+    const result = await handleRegister(e, {
       firstName,
       lastName,
       email,
@@ -29,7 +30,9 @@ function RegisterPage({ onShowLogin, onRegisterSuccess }) {
       confirmPassword
     });
 
-    if (success) {
+    setAuthNotice(result?.message ? { message: result.message, type: result.type || "info" } : null);
+
+    if (result?.success) {
       if (typeof onRegisterSuccess === "function") {
         onRegisterSuccess();
       }
@@ -48,6 +51,8 @@ function RegisterPage({ onShowLogin, onRegisterSuccess }) {
 
         <h2>Create Account</h2>
         <p className="subtitle">Start tracking your reading journey</p>
+
+        {authNotice && <div className={`auth-notice ${authNotice.type}`}>{authNotice.message}</div>}
 
         <form onSubmit={submitForm}>
 

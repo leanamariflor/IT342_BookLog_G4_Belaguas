@@ -17,6 +17,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
 
@@ -107,6 +112,58 @@ public class BookController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error searching books: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/proxy-cover")
+    public ResponseEntity<byte[]> proxyCover(Authentication authentication,
+                                             @RequestParam("url") String targetUrl) {
+        try {
+            URI uri = URI.create(targetUrl);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+
+            if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+                return ResponseEntity.badRequest().body(new byte[0]);
+            }
+
+            // Restrict proxying to Google Books cover host to avoid SSRF abuse.
+            if (host == null || !"books.google.com".equalsIgnoreCase(host)) {
+                return ResponseEntity.badRequest().body(new byte[0]);
+            }
+
+            URLConnection connection = uri.toURL().openConnection();
+            if (connection instanceof HttpURLConnection httpConnection) {
+                httpConnection.setRequestMethod("GET");
+                httpConnection.setConnectTimeout(8000);
+                httpConnection.setReadTimeout(12000);
+                httpConnection.setRequestProperty("User-Agent", "BookLog/1.0");
+            }
+
+            String contentType = connection.getContentType();
+            if (contentType == null || contentType.isBlank()) {
+                contentType = MediaType.IMAGE_JPEG_VALUE;
+            }
+
+            byte[] payload;
+            try (InputStream inputStream = connection.getInputStream()) {
+                payload = inputStream.readAllBytes();
+            }
+
+            MediaType mediaType;
+            try {
+                mediaType = MediaType.parseMediaType(contentType);
+            } catch (Exception parseError) {
+                mediaType = MediaType.IMAGE_JPEG;
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .body(payload);
+        } catch (IllegalArgumentException invalidUri) {
+            return ResponseEntity.badRequest().body(new byte[0]);
+        } catch (IOException ioError) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(new byte[0]);
         }
     }
 

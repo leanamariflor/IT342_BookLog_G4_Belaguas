@@ -9,28 +9,40 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
   useEffect(() => {
     const handleOAuthCallback = async () => {
       try {
-        // Spring Boot redirects here with ?token=JWT after successful Google OAuth
         const params = new URLSearchParams(window.location.search);
-        const token = params.get("token");
-        const error = params.get("error");
+        const errorParam = params.get("error");
 
-        if (error) {
-          throw new Error(error);
+        if (errorParam) {
+          throw new Error(errorParam);
         }
 
-        if (!token) {
-          throw new Error("No token received from server");
+        const email = params.get("email");
+        const firstName = params.get("firstName") || "User";
+        const lastName = params.get("lastName") || "";
+        const picture = params.get("picture") || "";
+        const provider = params.get("provider") || "google";
+
+        if (!email) {
+          throw new Error("Missing email from OAuth callback");
+        }
+        
+        const response = await axios.post(
+          "http://localhost:8080/api/auth/oauth/callback",
+          {
+            email,
+            firstName,
+            lastName,
+            profileImage: picture,
+            provider
+          }
+        );
+
+        // Store backend JWT if provided (ALWAYS store token first)
+        if (response.data.token) {
+          localStorage.setItem("token", response.data.token);
         }
 
-        // Store the JWT
-        localStorage.setItem("token", token);
-
-        // Fetch user profile from Spring Boot using the JWT
-        const baseUrl = import.meta.env.VITE_API_BASE_URL;
-        const response = await axios.get(`${baseUrl}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
+        // Store user data from backend response
         const userData = {
           userId: response.data.userId,
           email: response.data.email,
@@ -39,13 +51,13 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
           profileImage: response.data.profileImage,
           roles: response.data.roles || ["ROLE_USER"],
         };
-
         localStorage.setItem("user", JSON.stringify(userData));
 
+        // Only call onLoginSuccess after token and user are set
         if (typeof onLoginSuccess === "function") {
           onLoginSuccess();
         }
-
+        
         setStatus("Login successful! Redirecting...");
         setTimeout(() => navigate("/dashboard"), 1000);
 

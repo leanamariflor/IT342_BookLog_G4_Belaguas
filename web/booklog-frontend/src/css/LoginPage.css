@@ -47,6 +47,33 @@ h2 {
   font-size: 14px;
 }
 
+.auth-notice {
+  margin-bottom: 14px;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.auth-notice.success {
+  background: #fdf2f8;
+  border: 1px solid #d9a8c0;
+  color: #5b3347;
+}
+
+.auth-notice.error {
+  background: #fff1f2;
+  border: 1px solid #fb7185;
+  color: #9f1239;
+}
+
+.auth-notice.warning {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+}
+
 .input-field {
   width: 100%;
   padding: 14px;

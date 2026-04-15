@@ -1,6 +1,7 @@
 package com.booklog.booklog_backend.Model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,6 +41,15 @@ public class Book {
 
     @Column(name = "cover_image_url", length = 1000)
     private String coverImageUrl;
+
+    @Column(name = "review", columnDefinition = "TEXT")
+    private String review;
+
+    @Column(name = "date_started")
+    private LocalDate dateStarted;
+
+    @Column(name = "date_completed")
+    private LocalDate dateCompleted;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -152,6 +162,30 @@ public class Book {
 
     public void setCoverImageUrl(String coverImageUrl) {
         this.coverImageUrl = coverImageUrl;
+    }
+
+    public String getReview() {
+        return review;
+    }
+
+    public void setReview(String review) {
+        this.review = review;
+    }
+
+    public LocalDate getDateStarted() {
+        return dateStarted;
+    }
+
+    public void setDateStarted(LocalDate dateStarted) {
+        this.dateStarted = dateStarted;
+    }
+
+    public LocalDate getDateCompleted() {
+        return dateCompleted;
+    }
+
+    public void setDateCompleted(LocalDate dateCompleted) {
+        this.dateCompleted = dateCompleted;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -1,6 +1,8 @@
 package com.booklog.booklog_backend.Dto;
 
 import java.util.List;
+import java.util.Map;
+import java.time.LocalDateTime;
 
 public class UserResponse {
 
@@ -9,7 +11,12 @@ public class UserResponse {
     private String lastName;
     private String email;
     private String profileImage;
+    private LocalDateTime createdAt;
     private String provider;
+    private String username;
+    private String location;
+    private String bio;
+    private Map<Integer, Integer> readingGoals;
     private String token;
     private List<String> roles;
     private String message;
@@ -88,12 +95,52 @@ public class UserResponse {
         this.profileImage = profileImage;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public String getProvider() {
         return provider;
     }
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public Map<Integer, Integer> getReadingGoals() {
+        return readingGoals;
+    }
+
+    public void setReadingGoals(Map<Integer, Integer> readingGoals) {
+        this.readingGoals = readingGoals;
     }
 
     public String getToken() {

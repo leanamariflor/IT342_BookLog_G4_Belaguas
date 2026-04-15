@@ -1,7 +1,5 @@
 import axios from "axios";
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
-
 export const handleRegister = async (e, formData) => {
 
   e.preventDefault();
@@ -20,7 +18,7 @@ export const handleRegister = async (e, formData) => {
   try {
 
     const response = await axios.post(
-      `${baseUrl}/api/auth/register`,
+      "http://localhost:8080/api/auth/register",
       {
         firstName,
         lastName,
@@ -38,6 +36,10 @@ export const handleRegister = async (e, formData) => {
       email: userData.email,
       profileImage: userData.profileImage,
       createdAt: userData.createdAt,
+      username: userData.username || "",
+      location: userData.location || "",
+      bio: userData.bio || "",
+      readingGoals: userData.readingGoals || {},
       oauthProvider: userData.provider || null,
       roles: userData.roles || ["ROLE_USER"]
     }));

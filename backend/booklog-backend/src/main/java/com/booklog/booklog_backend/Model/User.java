@@ -32,6 +32,18 @@ public class User {
     @Column(name = "oauth_provider", length = 50)
     private String oauthProvider;
 
+    @Column(name = "username", length = 100)
+    private String username;
+
+    @Column(name = "location", length = 150)
+    private String location;
+
+    @Column(name = "bio", length = 2000)
+    private String bio;
+
+    @Column(name = "reading_goals_json", length = 4000)
+    private String readingGoalsJson;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -120,6 +132,38 @@ public class User {
 
     public void setOauthProvider(String oauthProvider) {
         this.oauthProvider = oauthProvider;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getReadingGoalsJson() {
+        return readingGoalsJson;
+    }
+
+    public void setReadingGoalsJson(String readingGoalsJson) {
+        this.readingGoalsJson = readingGoalsJson;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./jsx/LoginPage";
 import RegisterPage from "./jsx/RegisterPage";
@@ -15,22 +15,54 @@ import BookCalendar from "./jsx/BookCalendar";
 import Notes from "./jsx/Notes";
 
 const hasAdminRole = () => {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    user = null;
+  }
   const roles = user?.roles || [];
   return roles.includes("ROLE_ADMIN");
 };
 
+const isAuthenticatedFromStorage = () => {
+  const token = localStorage.getItem("token");
+  const userRaw = localStorage.getItem("user");
+  if (!token || !userRaw) {
+    return false;
+  }
+
+  try {
+    return Boolean(JSON.parse(userRaw));
+  } catch {
+    localStorage.removeItem("user");
+    return false;
+  }
+};
+
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => Boolean(localStorage.getItem("user")) && Boolean(localStorage.getItem("token"))
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(() => isAuthenticatedFromStorage());
+
+  useEffect(() => {
+    const syncAuthState = () => {
+      setIsAuthenticated(isAuthenticatedFromStorage());
+    };
+
+    window.addEventListener("storage", syncAuthState);
+    window.addEventListener("auth-state-changed", syncAuthState);
+
+    return () => {
+      window.removeEventListener("storage", syncAuthState);
+      window.removeEventListener("auth-state-changed", syncAuthState);
+    };
+  }, []);
 
   const handleLoginSuccess = () => {
-    setIsAuthenticated(Boolean(localStorage.getItem("user")) && Boolean(localStorage.getItem("token")));
+    setIsAuthenticated(isAuthenticatedFromStorage());
   };
 
   const handleRegisterSuccess = () => {
-    setIsAuthenticated(Boolean(localStorage.getItem("user")) && Boolean(localStorage.getItem("token")));
+    setIsAuthenticated(isAuthenticatedFromStorage());
   };
 
   const handleLogout = () => {
@@ -42,6 +74,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* OAuth2 redirect handler (accessible without authentication) */}
         <Route
           path="/oauth2/redirect"
           element={<OAuth2RedirectHandler onLoginSuccess={handleLoginSuccess} />}
@@ -58,6 +91,7 @@ function App() {
               element={
                 <LoginPage
                   onShowRegister={(show) => {
+                    /* Router handles this */
                   }}
                   onLoginSuccess={handleLoginSuccess}
                 />
@@ -68,7 +102,7 @@ function App() {
               element={
                 <RegisterPage
                   onShowLogin={(show) => {
-                   
+                    /* Router handles this */
                   }}
                   onRegisterSuccess={handleRegisterSuccess}
                 />

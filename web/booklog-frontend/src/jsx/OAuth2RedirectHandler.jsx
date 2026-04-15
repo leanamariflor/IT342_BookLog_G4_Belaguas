@@ -6,6 +6,19 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState("Processing OAuth login...");
 
+  const decodeIfEncoded = (value) => {
+    if (!value) {
+      return "";
+    }
+
+    try {
+      const decoded = decodeURIComponent(value);
+      return decoded;
+    } catch {
+      return value;
+    }
+  };
+
   useEffect(() => {
     const handleOAuthCallback = async () => {
       try {
@@ -16,11 +29,11 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
           throw new Error(errorParam);
         }
 
-        const email = params.get("email");
-        const firstName = params.get("firstName") || "User";
-        const lastName = params.get("lastName") || "";
-        const picture = params.get("picture") || "";
-        const provider = params.get("provider") || "google";
+        const email = decodeIfEncoded(params.get("email"));
+        const firstName = decodeIfEncoded(params.get("firstName")) || "User";
+        const lastName = decodeIfEncoded(params.get("lastName")) || "";
+        const picture = decodeIfEncoded(params.get("picture")) || "";
+        const provider = decodeIfEncoded(params.get("provider")) || "google";
 
         if (!email) {
           throw new Error("Missing email from OAuth callback");
@@ -37,10 +50,11 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
           }
         );
 
-        // Store backend JWT if provided (ALWAYS store token first)
-        if (response.data.token) {
-          localStorage.setItem("token", response.data.token);
+        const token = response?.data?.token;
+        if (!token) {
+          throw new Error("OAuth login succeeded but no token was returned.");
         }
+        localStorage.setItem("token", token);
 
         // Store user data from backend response
         const userData = {
@@ -49,7 +63,13 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
           firstName: response.data.firstName,
           lastName: response.data.lastName,
           profileImage: response.data.profileImage,
-          roles: response.data.roles || ["ROLE_USER"],
+          createdAt: response.data.createdAt,
+          username: response.data.username || "",
+          location: response.data.location || "",
+          bio: response.data.bio || "",
+          readingGoals: response.data.readingGoals || {},
+          oauthProvider: response.data.provider,
+          roles: response.data.roles || ["ROLE_USER"]
         };
         localStorage.setItem("user", JSON.stringify(userData));
 
@@ -60,9 +80,11 @@ const OAuth2RedirectHandler = ({ onLoginSuccess }) => {
         
         setStatus("Login successful! Redirecting...");
         setTimeout(() => navigate("/dashboard"), 1000);
-
+        
       } catch (error) {
         console.error("OAuth callback error:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         setStatus("OAuth login failed: " + (error.response?.data?.message || error.message));
         setTimeout(() => navigate("/"), 3000);
       }

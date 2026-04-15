@@ -74,6 +74,10 @@ const normalizeRating = (value) => {
   return Math.max(0, Math.min(5, parsed));
 };
 
+const saveGoalsLocally = (goals) => {
+  localStorage.setItem(GOAL_STORAGE_KEY, JSON.stringify(goals));
+};
+
 const AnnualStatistics = ({ onLogout }) => {
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
@@ -87,19 +91,40 @@ const AnnualStatistics = ({ onLogout }) => {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
-    const raw = localStorage.getItem(GOAL_STORAGE_KEY);
-    if (!raw) {
-      return;
-    }
+    const loadReadingGoals = async () => {
+      const token = localStorage.getItem("token");
+      let localGoals = {};
 
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") {
-        setGoalByYear((prev) => ({ ...prev, ...parsed }));
+      const raw = localStorage.getItem(GOAL_STORAGE_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            localGoals = parsed;
+          }
+        } catch (error) {
+          console.error("Unable to parse saved reading goals", error);
+        }
       }
-    } catch (error) {
-      console.error("Unable to parse saved reading goals", error);
-    }
+
+      if (!token) {
+        setGoalByYear((prev) => ({ ...prev, ...localGoals }));
+        return;
+      }
+
+      try {
+        const response = await api.get("/auth/me", { skipAuthReset: true });
+        const backendGoals = response?.data?.readingGoals || {};
+        const mergedGoals = { ...localGoals, ...backendGoals };
+        setGoalByYear((prev) => ({ ...prev, ...mergedGoals }));
+        saveGoalsLocally(mergedGoals);
+      } catch (error) {
+        console.error("Unable to load backend reading goals", error);
+        setGoalByYear((prev) => ({ ...prev, ...localGoals }));
+      }
+    };
+
+    loadReadingGoals();
   }, []);
 
   useEffect(() => {
@@ -243,7 +268,7 @@ const AnnualStatistics = ({ onLogout }) => {
     setIsGoalDialogOpen(true);
   };
 
-  const saveGoal = () => {
+  const saveGoal = async () => {
     const sanitizedGoal = Math.max(1, Number(goalDraft) || 24);
     const updatedGoals = {
       ...goalByYear,
@@ -251,7 +276,20 @@ const AnnualStatistics = ({ onLogout }) => {
     };
 
     setGoalByYear(updatedGoals);
-    localStorage.setItem(GOAL_STORAGE_KEY, JSON.stringify(updatedGoals));
+    saveGoalsLocally(updatedGoals);
+
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const response = await api.put("/auth/me", { readingGoals: updatedGoals });
+        const backendGoals = response?.data?.readingGoals || updatedGoals;
+        setGoalByYear((prev) => ({ ...prev, ...backendGoals }));
+        saveGoalsLocally({ ...updatedGoals, ...backendGoals });
+      } catch (error) {
+        console.error("Unable to save reading goals to backend", error);
+      }
+    }
+
     setIsGoalDialogOpen(false);
   };
 

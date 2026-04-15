@@ -41,7 +41,13 @@ const Sidebar = ({ activePage = "dashboard", onLogout }) => {
   useEffect(() => {
     let objectUrl = null;
 
-    const userData = JSON.parse(localStorage.getItem("user"));
+    let userData = null;
+    try {
+      userData = JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      userData = null;
+      localStorage.removeItem("user");
+    }
     if (userData) {
       const firstInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : "";
       const lastInitial = userData.lastName ? userData.lastName.charAt(0).toUpperCase() : "";
@@ -52,9 +58,13 @@ const Sidebar = ({ activePage = "dashboard", onLogout }) => {
       // Always prefer uploaded image (local endpoint) over Google image
       if (!profileImage) {
         setAvatarSrc("");
-      } else if (profileImage.toLowerCase().includes("/api/auth/me/profile-image") || profileImage.startsWith("profiles/")) {
+      } else if (
+        profileImage.toLowerCase().includes("/api/auth/me/profile-image") ||
+        profileImage.toLowerCase().includes("/api/users/me/profile-image") ||
+        profileImage.startsWith("profiles/")
+      ) {
         api
-          .get("/auth/me/profile-image", { responseType: "blob" })
+          .get("/users/me/profile-image", { responseType: "blob", skipAuthReset: true })
           .then((response) => {
             objectUrl = URL.createObjectURL(response.data);
             setAvatarSrc(objectUrl);

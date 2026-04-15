@@ -7,7 +7,6 @@ import api from "../api/axios";
 import { toAbsoluteMediaUrl } from "../utils/mediaUrl";
 
 const Profile = ({ onLogout }) => {
-  const PROFILE_EXTRAS_STORAGE_KEY = "profileExtras";
   const GOAL_STORAGE_KEY = "readingGoalByYear";
   const PROFILE_IMAGE_CACHE_PREFIX = "profileImageCache";
   const fileInputRef = useRef(null);
@@ -86,9 +85,15 @@ const Profile = ({ onLogout }) => {
     });
   };
 
-  const loadCurrentYearGoal = () => {
+  const loadCurrentYearGoal = (readingGoals) => {
     try {
       const currentYear = new Date().getFullYear();
+      const goalFromResponse = Number(readingGoals?.[currentYear]);
+      if (goalFromResponse > 0) {
+        setYearlyGoal(goalFromResponse);
+        return;
+      }
+
       const raw = localStorage.getItem(GOAL_STORAGE_KEY);
       if (!raw) {
         setYearlyGoal(24);
@@ -104,33 +109,20 @@ const Profile = ({ onLogout }) => {
   };
 
   const updateLocalUser = (updates) => {
-    const existingUser = JSON.parse(localStorage.getItem("user") || "{}");
+    let existingUser = {};
+    try {
+      existingUser = JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      existingUser = {};
+    }
     const merged = { ...existingUser, ...updates };
     localStorage.setItem("user", JSON.stringify(merged));
   };
 
-  const loadStoredExtras = () => {
-    try {
-      const extras = JSON.parse(localStorage.getItem(PROFILE_EXTRAS_STORAGE_KEY) || "{}");
-      setUsername(extras.username || "");
-      setLocation(extras.location || "");
-      setBio(extras.bio || "");
-    } catch {
-      setUsername("");
-      setLocation("");
-      setBio("");
-    }
-  };
-
-  const saveStoredExtras = () => {
-    localStorage.setItem(
-      PROFILE_EXTRAS_STORAGE_KEY,
-      JSON.stringify({
-        username: draftUsername.trim(),
-        location: draftLocation.trim(),
-        bio: draftBio.trim(),
-      })
-    );
+  const loadStoredExtras = (userData) => {
+    setUsername(userData?.username || "");
+    setLocation(userData?.location || "");
+    setBio(userData?.bio || "");
   };
 
   const setImagePreviewUrl = (nextUrl) => {
@@ -150,14 +142,18 @@ const Profile = ({ onLogout }) => {
 
     // Always prefer uploaded image (local endpoint) over Google image
     const normalized = profileImage.toLowerCase();
-    if (normalized.includes("/api/auth/me/profile-image") || normalized.startsWith("profiles/")) {
+    if (
+      normalized.includes("/api/auth/me/profile-image") ||
+      normalized.includes("/api/users/me/profile-image") ||
+      normalized.startsWith("profiles/")
+    ) {
       const cachedDataUrl = getCachedProfileImage(userId);
       if (cachedDataUrl) {
         setImagePreviewUrl(cachedDataUrl);
         return;
       }
       try {
-        const response = await api.get("/auth/me/profile-image", { responseType: "blob" });
+        const response = await api.get("/users/me/profile-image", { responseType: "blob", skipAuthReset: true });
         const dataUrl = await blobToDataUrl(response.data);
         if (dataUrl) {
           setCachedProfileImage(userId, dataUrl);
@@ -189,6 +185,10 @@ const Profile = ({ onLogout }) => {
     setLastName(userData.lastName || "");
     setEmail(userData.email || "");
     setCreatedAt(userData.createdAt || "");
+    setUsername(userData.username || "");
+    setLocation(userData.location || "");
+    setBio(userData.bio || "");
+    loadCurrentYearGoal(userData.readingGoals || {});
     updateLocalUser({
       userId: userData.userId,
       firstName: userData.firstName,
@@ -196,6 +196,10 @@ const Profile = ({ onLogout }) => {
       email: userData.email,
       profileImage: userData.profileImage,
       createdAt: userData.createdAt,
+      username: userData.username || "",
+      location: userData.location || "",
+      bio: userData.bio || "",
+      readingGoals: userData.readingGoals || {},
       oauthProvider: userData.provider || null,
       roles: userData.roles || ["ROLE_USER"],
     });
@@ -230,24 +234,28 @@ const Profile = ({ onLogout }) => {
     let isMounted = true;
 
     const initializeProfile = async () => {
-      const localUser = JSON.parse(localStorage.getItem("user") || "{}");
-      setFirstName(localUser.firstName || "");
-      setLastName(localUser.lastName || "");
-      setEmail(localUser.email || "");
-      setCreatedAt(localUser.createdAt || "");
-      loadStoredExtras();
-      loadCurrentYearGoal();
-      await loadProfileImagePreview(localUser.profileImage || "", localUser.userId);
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        if (isMounted) {
-          setIsProfileLoading(false);
-        }
-        return;
-      }
-
       try {
+        let localUser = {};
+        try {
+          localUser = JSON.parse(localStorage.getItem("user") || "{}");
+        } catch {
+          localUser = {};
+          localStorage.removeItem("user");
+        }
+
+        setFirstName(localUser.firstName || "");
+        setLastName(localUser.lastName || "");
+        setEmail(localUser.email || "");
+        setCreatedAt(localUser.createdAt || "");
+        loadStoredExtras(localUser);
+        loadCurrentYearGoal(localUser.readingGoals || {});
+        await loadProfileImagePreview(localUser.profileImage || "", localUser.userId);
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          return;
+        }
+
         const response = await api.get("/auth/me");
         await applyUserResponse(response.data);
       } catch (error) {
@@ -325,11 +333,22 @@ const Profile = ({ onLogout }) => {
 
         const token = localStorage.getItem("token");
         let latestUserData = null;
+        const currentYear = new Date().getFullYear();
 
         if (token) {
+          const localUser = JSON.parse(localStorage.getItem("user") || "{}");
+          const readingGoals = {
+            ...(localUser.readingGoals || {}),
+            [currentYear]: yearlyGoal,
+          };
+
           const response = await api.put("/auth/me", {
             firstName: draftFirstName.trim(),
             lastName: draftLastName.trim(),
+            username: draftUsername.trim(),
+            location: draftLocation.trim(),
+            bio: draftBio.trim(),
+            readingGoals,
           });
           latestUserData = response.data;
 
@@ -337,7 +356,7 @@ const Profile = ({ onLogout }) => {
             setIsUploadingImage(true);
             const formData = new FormData();
             formData.append("file", pendingImageFile);
-            const uploadResponse = await api.post("/auth/me/profile-image", formData, {
+            const uploadResponse = await api.post("/users/me/profile-image", formData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
             latestUserData = uploadResponse.data;
@@ -353,6 +372,9 @@ const Profile = ({ onLogout }) => {
           updateLocalUser({
             firstName: draftFirstName.trim(),
             lastName: draftLastName.trim(),
+            username: draftUsername.trim(),
+            location: draftLocation.trim(),
+            bio: draftBio.trim(),
           });
 
           if (pendingImageFile) {
@@ -366,8 +388,6 @@ const Profile = ({ onLogout }) => {
         setUsername(draftUsername.trim());
         setLocation(draftLocation.trim());
         setBio(draftBio.trim());
-
-        saveStoredExtras();
         showProfileToast("Changes saved.", "success", 2000);
         setIsEditing(false);
         clearPendingImage();

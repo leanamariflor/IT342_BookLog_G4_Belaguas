@@ -1,5 +1,6 @@
 package com.booklog.booklog_backend.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.booklog.booklog_backend.Dto.LoginRequest;
 import com.booklog.booklog_backend.Dto.OAuthCallbackRequest;
 import com.booklog.booklog_backend.Dto.ProfileUpdateRequest;
@@ -23,6 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -37,6 +40,7 @@ public class AuthService {
     private final UserRoleResolver userRoleResolver;
     private final UserResponseFactory userResponseFactory;
     private final ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
@@ -46,13 +50,15 @@ public class AuthService {
                        JwtService jwtService,
                        UserRoleResolver userRoleResolver,
                        UserResponseFactory userResponseFactory,
-                       ApplicationEventPublisher eventPublisher) {
+                       ApplicationEventPublisher eventPublisher,
+                       ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.userRoleResolver = userRoleResolver;
         this.userResponseFactory = userResponseFactory;
         this.eventPublisher = eventPublisher;
+        this.objectMapper = objectMapper;
     }
 
     public UserResponse register(RegisterRequest request) {
@@ -110,6 +116,18 @@ public class AuthService {
         }
         if (request.getLastName() != null) {
             user.setLastName(trimToNull(request.getLastName()));
+        }
+        if (request.getUsername() != null) {
+            user.setUsername(trimToNull(request.getUsername()));
+        }
+        if (request.getLocation() != null) {
+            user.setLocation(trimToNull(request.getLocation()));
+        }
+        if (request.getBio() != null) {
+            user.setBio(trimToNull(request.getBio()));
+        }
+        if (request.getReadingGoals() != null) {
+            user.setReadingGoalsJson(serializeReadingGoals(request.getReadingGoals()));
         }
 
         userRepository.save(user);
@@ -284,6 +302,26 @@ public class AuthService {
         }
 
         return trimmed.length() > maxLength ? trimmed.substring(0, maxLength) : trimmed;
+    }
+
+    private String serializeReadingGoals(Map<Integer, Integer> readingGoals) {
+        try {
+            Map<Integer, Integer> sanitized = new LinkedHashMap<>();
+            for (Map.Entry<Integer, Integer> entry : readingGoals.entrySet()) {
+                Integer year = entry.getKey();
+                Integer goal = entry.getValue();
+                if (year == null || goal == null) {
+                    continue;
+                }
+                if (year < 1900 || year > 3000) {
+                    continue;
+                }
+                sanitized.put(year, Math.max(1, goal));
+            }
+            return objectMapper.writeValueAsString(sanitized);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to save reading goals", ex);
+        }
     }
 
     private String trimToNull(String value) {

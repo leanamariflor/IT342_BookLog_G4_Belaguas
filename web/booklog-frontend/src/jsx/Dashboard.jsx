@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/Dashboard.css";
 import Sidebar from "./Sidebar";
@@ -24,6 +24,7 @@ const Dashboard = ({ onLogout }) => {
   const [toReadBooks, setToReadBooks] = useState([]);
   const [readingBooks, setReadingBooks] = useState([]);
   const [completedBooks, setCompletedBooks] = useState([]);
+  const missingAttachmentBookIdsRef = useRef(new Set());
   const [userName, setUserName] = useState("User");
   const [yearlyReadingGoal, setYearlyReadingGoal] = useState(DEFAULT_YEARLY_READING_GOAL);
   const [isDashboardLoading, setIsDashboardLoading] = useState(true);
@@ -73,14 +74,17 @@ const Dashboard = ({ onLogout }) => {
         backendBooks.map(async (book) => {
           let resolvedImage = toAbsoluteMediaUrl(book.coverImageUrl) || PLACEHOLDER_COVER;
 
-          if (book.attachmentUrl && book.bookId) {
+          if (book.attachmentUrl && book.bookId && !missingAttachmentBookIdsRef.current.has(book.bookId)) {
             try {
               const response = await api.get(`/books/${book.bookId}/attachment`, {
-                responseType: "blob"
+                responseType: "blob",
+                skipAuthReset: true
               });
               resolvedImage = URL.createObjectURL(response.data);
             } catch (attachmentError) {
-              if (attachmentError?.response?.status !== 404) {
+              if (attachmentError?.response?.status === 404) {
+                missingAttachmentBookIdsRef.current.add(book.bookId);
+              } else {
                 console.error("Unable to load dashboard attachment preview for book", book.bookId, attachmentError);
               }
             }
@@ -233,16 +237,16 @@ const Dashboard = ({ onLogout }) => {
     <div className="dashboard-container">
       <Sidebar activePage="dashboard" onLogout={onLogout} />
 
-     
+      {/* Main Content */}
       <main className="main-content">
 
-       
+        {/* Greeting */}
         <div className="greeting">
           <h1>Welcome Back, {userName}!</h1>
           <p>Keep up your reading journey and reach your goals</p>
         </div>
 
-       
+        {/* Stats Grid */}
         <div className="stats-grid">
           <div className="stat-card stat-blue" {...toCardProps("/books")}>
             <div className="stat-header">
@@ -277,7 +281,7 @@ const Dashboard = ({ onLogout }) => {
           </div>
         </div>
 
-  
+   {/* Books Later Section */}
         <div className="later-section">
           <div className="later-header">
             <h3>Books to Read Later</h3>

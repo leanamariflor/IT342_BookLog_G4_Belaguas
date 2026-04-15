@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/RegisterPage.css";
 import logo from "../assets/logo1.png";
-import googleIcon from "../assets/google-icon.svg";
 import { handleRegister } from "../scripts/Register";
 
 function RegisterPage({ onShowLogin, onRegisterSuccess }) {
@@ -14,12 +13,6 @@ function RegisterPage({ onShowLogin, onRegisterSuccess }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [authNotice, setAuthNotice] = useState(null);
-
-  const baseUrl = import.meta.env.VITE_API_BASE_URL;
-
-  const handleGoogleSignup = () => {
-    window.location.href = `${baseUrl}/oauth2/auth/google`;
-  };
 
   const submitForm = async (e) => {
     const result = await handleRegister(e, {
@@ -95,9 +88,8 @@ function RegisterPage({ onShowLogin, onRegisterSuccess }) {
             Create Account
           </button>
 
-          <button type="button" className="google-btn" onClick={handleGoogleSignup}>
-            <img src={googleIcon} alt="Google" className="google-icon" />
-            <span>Sign up with Google</span>
+          <button type="button" className="google-btn">
+            Sign up with Google
           </button>
 
           <p className="signin-text">

@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -39,10 +37,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         // Build redirect URL with user data
         String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
-                .queryParam("email", URLEncoder.encode(email != null ? email : "", StandardCharsets.UTF_8))
-                .queryParam("firstName", URLEncoder.encode(firstName != null ? firstName : "", StandardCharsets.UTF_8))
-                .queryParam("lastName", URLEncoder.encode(lastName != null ? lastName : "", StandardCharsets.UTF_8))
-                .queryParam("picture", URLEncoder.encode(picture != null ? picture : "", StandardCharsets.UTF_8))
+            .queryParam("email", email != null ? email : "")
+            .queryParam("firstName", firstName != null ? firstName : "")
+            .queryParam("lastName", lastName != null ? lastName : "")
+            .queryParam("picture", picture != null ? picture : "")
                 .queryParam("provider", "google")
                 .build().toUriString();
 

@@ -6,13 +6,13 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.11</version>
-		<relativePath/>
+		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>edu.cit.belaguas</groupId>
 	<artifactId>booklog</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>booklog</name>
-	<description>Demo project for Spring Boot</description>
+	<name>BookLog</name>
+	<description></description>
 	<url/>
 	<licenses>
 		<license/>

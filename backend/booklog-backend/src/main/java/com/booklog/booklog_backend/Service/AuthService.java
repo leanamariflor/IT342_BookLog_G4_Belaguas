@@ -2,25 +2,34 @@ package com.booklog.booklog_backend.Service;
 
 import com.booklog.booklog_backend.Dto.LoginRequest;
 import com.booklog.booklog_backend.Dto.OAuthCallbackRequest;
+import com.booklog.booklog_backend.Dto.ProfileUpdateRequest;
 import com.booklog.booklog_backend.Dto.RegisterRequest;
 import com.booklog.booklog_backend.Dto.UserResponse;
-import com.booklog.booklog_backend.Model.Role;
 import com.booklog.booklog_backend.Model.User;
 import com.booklog.booklog_backend.Repository.UserRepository;
 import com.booklog.booklog_backend.Service.auth.factory.UserResponseFactory;
 import com.booklog.booklog_backend.Service.auth.support.UserRoleResolver;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 @Service
 public class AuthService {
 
     private static final int OAUTH_PROVIDER_MAX_LENGTH = 50;
-    private static final int PROFILE_IMAGE_MAX_LENGTH = 50;
+    private static final int PROFILE_IMAGE_MAX_LENGTH = 500;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -28,6 +37,9 @@ public class AuthService {
     private final UserRoleResolver userRoleResolver;
     private final UserResponseFactory userResponseFactory;
     private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
@@ -44,7 +56,6 @@ public class AuthService {
     }
 
     public UserResponse register(RegisterRequest request) {
-
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
@@ -87,8 +98,77 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         userRoleResolver.ensureDefaultRoleIfMissing(user);
-
         return userResponseFactory.buildProfileResponse(user, "Current user fetched");
+    }
+
+    public UserResponse updateCurrentUser(String email, ProfileUpdateRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.getFirstName() != null) {
+            user.setFirstName(trimToNull(request.getFirstName()));
+        }
+        if (request.getLastName() != null) {
+            user.setLastName(trimToNull(request.getLastName()));
+        }
+
+        userRepository.save(user);
+        userRoleResolver.ensureDefaultRoleIfMissing(user);
+        return userResponseFactory.buildProfileResponse(user, "Profile updated successfully");
+    }
+
+    public UserResponse updateCurrentUserProfileImage(String email, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("File is required");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
+            throw new RuntimeException("Only image files are allowed");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        try {
+            Path uploadBasePath = Paths.get(uploadDir, "profile-images").toAbsolutePath().normalize();
+            Files.createDirectories(uploadBasePath);
+
+            String originalName = file.getOriginalFilename() == null ? "profile-image" : file.getOriginalFilename();
+            String safeName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+            String storedFileName = UUID.randomUUID() + "_" + safeName;
+            Path targetPath = uploadBasePath.resolve(storedFileName);
+
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            deleteExistingProfileImage(user.getProfileImage());
+            user.setProfileImage("profiles/" + storedFileName);
+            userRepository.save(user);
+            userRoleResolver.ensureDefaultRoleIfMissing(user);
+
+            return userResponseFactory.buildProfileResponse(user, "Profile image updated successfully");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store profile image", e);
+        }
+    }
+
+    public Resource getCurrentUserProfileImage(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getProfileImage() == null || !user.getProfileImage().startsWith("profiles/")) {
+            throw new RuntimeException("No profile image found");
+        }
+
+        String storedFileName = user.getProfileImage().substring("profiles/".length());
+        Path imagePath = Paths.get(uploadDir, "profile-images", storedFileName).toAbsolutePath().normalize();
+        Resource resource = new FileSystemResource(imagePath);
+
+        if (!resource.exists()) {
+            throw new RuntimeException("Profile image file not found");
+        }
+
+        return resource;
     }
 
     private AuthOutcome processAuthentication(AuthType authType, Object payload) {
@@ -96,7 +176,6 @@ public class AuthService {
         return processor.authenticate(payload);
     }
 
-    // Factory Method: select the concrete strategy based on requested auth flow.
     private AuthProcessor getProcessor(AuthType authType) {
         return switch (authType) {
             case REGISTER -> this::registerWithEmailPassword;
@@ -105,7 +184,6 @@ public class AuthService {
         };
     }
 
-    // Adapter: map external OAuth callback fields into a normalized internal record.
     private OAuthUserData adaptOAuthRequest(OAuthCallbackRequest request) {
         return new OAuthUserData(
                 request.getEmail(),
@@ -172,7 +250,9 @@ public class AuthService {
             user.setOauthProvider(oauthData.provider());
             needsUpdate = true;
         }
+        boolean hasUploadedProfileImage = user.getProfileImage() != null && user.getProfileImage().startsWith("profiles/");
         if (oauthData.profileImage() != null && !oauthData.profileImage().isEmpty() &&
+                !hasUploadedProfileImage &&
                 (user.getProfileImage() == null || !user.getProfileImage().equals(oauthData.profileImage()))) {
             user.setProfileImage(oauthData.profileImage());
             needsUpdate = true;
@@ -204,6 +284,30 @@ public class AuthService {
         }
 
         return trimmed.length() > maxLength ? trimmed.substring(0, maxLength) : trimmed;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private void deleteExistingProfileImage(String profileImage) {
+        if (profileImage == null || !profileImage.startsWith("profiles/")) {
+            return;
+        }
+
+        String storedFileName = profileImage.substring("profiles/".length());
+        Path imagePath = Paths.get(uploadDir, "profile-images", storedFileName).toAbsolutePath().normalize();
+
+        try {
+            Files.deleteIfExists(imagePath);
+        } catch (IOException ignored) {
+            // Keep profile updates working even if cleanup fails.
+        }
     }
 
     private enum AuthType {

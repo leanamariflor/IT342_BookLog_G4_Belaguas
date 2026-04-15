@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="booklog_primary">#1F2937</color>
+    <color name="booklog_primary_dark">#374151</color>
+    <color name="booklog_secondary">#6B7280</color>
+    <color name="booklog_background">#F3F4F6</color>
+    <color name="booklog_surface">#FFFFFF</color>
+    <color name="booklog_on_primary">#FFFFFF</color>
+    <color name="booklog_on_background">#1F2937</color>
+    <color name="booklog_error">#DC2626</color>
+    <color name="booklog_dashboard_bg">#F3F4F6</color>
+    <color name="booklog_muted_text">#6B7280</color>
+    <color name="booklog_stat_blue">#1F2937</color>
+    <color name="booklog_stat_green">#D9A8C0</color>
+    <color name="booklog_stat_purple">#374151</color>
+    <color name="booklog_stat_orange">#D9A8C0</color>
+    <color name="booklog_cover_1">#A16207</color>
+    <color name="booklog_cover_2">#FBBF24</color>
+    <color name="booklog_cover_3">#E5E7EB</color>
+    <color name="booklog_nav_icon">#6B7280</color>
+</resources>

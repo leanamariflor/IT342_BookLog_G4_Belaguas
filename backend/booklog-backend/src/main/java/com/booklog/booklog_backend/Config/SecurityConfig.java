@@ -1,6 +1,7 @@
 package com.booklog.booklog_backend.Config;
 
 import com.booklog.booklog_backend.Service.CustomOAuth2UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,10 +49,19 @@ public class SecurityConfig {
                     "/api/auth/login",
                     "/api/auth/oauth/callback",
                     "/oauth2/**",
-                    "/login/oauth2/**"
+                    "/login/oauth2/**",
+                    "/api/proxy-image"
                 ).permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
-            );
+            )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                        })
+                );
+
+
 
         // Only enable OAuth2 login when a client registration is configured.
         if (clientRegistrationRepositoryProvider.getIfAvailable() != null) {

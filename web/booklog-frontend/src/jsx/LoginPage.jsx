@@ -5,17 +5,17 @@ import logo from "../assets/logo1.png";
 import googleIcon from "../assets/google-icon.svg";
 import { handleLogin } from "../scripts/Login";
 
-const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
-
-function LoginPage({ onLoginSuccess }) {
+function LoginPage({ onShowRegister, onLoginSuccess }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [authNotice, setAuthNotice] = useState(null);
 
   const submitLogin = async (e) => {
-    const success = await handleLogin(e, email, password);
+    const result = await handleLogin(e, email, password);
+    setAuthNotice(result?.message ? { message: result.message, type: result.type || "info" } : null);
 
-    if (success) {
+    if (result?.success) {
       if (typeof onLoginSuccess === "function") {
         onLoginSuccess();
       }
@@ -24,6 +24,7 @@ function LoginPage({ onLoginSuccess }) {
   };
 
   const handleGoogleLogin = async () => {
+    const backendBaseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
     window.location.href = `${backendBaseUrl}/oauth2/authorization/google`;
   };
 
@@ -38,6 +39,8 @@ function LoginPage({ onLoginSuccess }) {
 
         <h2>Welcome Back</h2>
         <p className="subtitle">Sign in to your account</p>
+
+        {authNotice && <div className={`auth-notice ${authNotice.type}`}>{authNotice.message}</div>}
 
         <form onSubmit={submitLogin}>
 

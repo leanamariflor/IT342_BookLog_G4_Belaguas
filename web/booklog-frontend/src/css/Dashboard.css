@@ -14,6 +14,14 @@ body {
 }
 
 .dashboard-container {
+  --brand-pink: #d9a8c0;
+  --dash-ink-900: #1f2937;
+  --dash-ink-700: #374151;
+  --dash-ink-500: #6b7280;
+  --dash-rose-600: var(--brand-pink);
+  --dash-rose-500: #d9a8c0;
+  --dash-rose-700: var(--brand-pink);
+  --dash-rose-muted: #8a6a7c;
   display: grid;
   grid-template-columns: 240px 1fr;
   grid-template-rows: 60px 1fr;
@@ -32,6 +40,10 @@ body {
   grid-row: 2;
 }
 
+.dashboard-loading-main {
+  justify-content: center;
+}
+
 /* Greeting */
 .greeting {
   margin-bottom: 20px;
@@ -41,12 +53,12 @@ body {
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 5px;
-  color: #1f2937;
+  color: var(--dash-ink-900);
 }
 
 .greeting p {
   font-size: 16px;
-  color: #6b7280;
+  color: var(--dash-rose-muted);
 }
 
 /* Stats Grid */
@@ -83,7 +95,7 @@ body {
 
 .stat-header p {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--dash-rose-muted);
   margin: 0;
 }
 
@@ -91,23 +103,23 @@ body {
   font-size: 28px;
   font-weight: 700;
   margin: 0;
-  color: #1f2937;
+  color: var(--dash-ink-900);
 }
 
 .stat-blue {
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--dash-ink-900);
 }
 
 .stat-green {
-  border-left: 4px solid #10b981;
+  border-left: 4px solid var(--dash-rose-500);
 }
 
 .stat-purple {
-  border-left: 4px solid #8b5cf6;
+  border-left: 4px solid var(--dash-ink-700);
 }
 
 .stat-orange {
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid var(--dash-rose-500);
 }
 
 /* Books Later Section */
@@ -128,15 +140,19 @@ body {
 .later-header h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--dash-ink-900);
   margin: 0;
 }
 
 .more-link {
-  color: #3b82f6;
+  color: var(--dash-rose-600);
   cursor: pointer;
   font-weight: 500;
   font-size: 14px;
+}
+
+.more-link:hover {
+  color: var(--dash-rose-700);
 }
 
 .later-scroll {
@@ -148,7 +164,7 @@ body {
 
 .dashboard-add-book-card {
   width: 120px;
-  height: 160px;
+  height: 168px;
   border: 2px dashed #d1d5db;
   border-radius: 8px;
   background: #f9fafb;
@@ -182,7 +198,7 @@ body {
 
 .later-scroll img {
   width: 120px;
-  height: 160px;
+  height: 168px;
   object-fit: cover;
   border-radius: 8px;
   flex-shrink: 0;
@@ -196,7 +212,7 @@ body {
 
 .placeholder {
   width: 120px;
-  height: 160px;
+  height: 168px;
   background: #f3f4f6;
   border: 2px dashed #d1d5db;
   border-radius: 8px;
@@ -207,6 +223,110 @@ body {
   color: #9ca3af;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.dashboard-widgets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dashboard-widget-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #edf0f4;
+}
+
+.dashboard-widget-card.dashboard-widget-calendar {
+  align-items: flex-start;
+}
+
+.dashboard-widget-card.dashboard-widget-calendar .dashboard-widget-icon {
+  width: 46px;
+  height: 46px;
+  align-self: center;
+  margin-top: 0;
+}
+
+.dashboard-widget-card h3 {
+  color: var(--dash-ink-900);
+  font-size: 24px;
+  margin: 0;
+}
+
+.dashboard-widget-card p {
+  color: var(--dash-rose-muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.dashboard-widget-mini-chart {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 260px;
+  height: 68px;
+  border-radius: 10px;
+  padding: 4px 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 4px;
+  align-items: end;
+}
+
+.dashboard-widget-mini-bar-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+}
+
+.dashboard-widget-mini-bar {
+  width: 100%;
+  max-width: 12px;
+  min-height: 2px;
+  background: #6b7280;
+  border-radius: 6px 6px 2px 2px;
+}
+
+.dashboard-widget-mini-bar.current {
+  background: var(--dash-rose-500);
+}
+
+.dashboard-widget-arrow {
+  color: #d9a8c0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.dashboard-widget-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: grayscale(100%);
+}
+
+.dashboard-widget-progress {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 3px solid #e9c6d7;
+  color: var(--dash-ink-700);
+  font-size: 18px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .dashboard-widgets {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Currently Reading Section */
@@ -228,7 +348,7 @@ body {
 .section-header h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--dash-ink-900);
   margin: 0;
 }
 
@@ -255,25 +375,12 @@ body {
 }
 
 .reading-card {
-  background: linear-gradient(135deg, #e8d5e8 0%, #f0e5f0 100%);
+  background: #ffffff;
+  border: 1px solid var(--brand-pink);
   border-radius: 16px;
   padding: 14px;
   position: relative;
   overflow: hidden;
-}
-
-.reading-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.day-counter {
-  font-size: 15px;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .reading-progress {
@@ -285,16 +392,15 @@ body {
 
 .reading-card-content {
   display: flex;
-  gap: 12px;
-  background: white;
-  border-radius: 12px;
-  padding: 12px;
+  gap: 14px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
   margin-bottom: 0;
 }
 
 .reading-card-image {
-  flex-shrink: 0;
-  width: 72px;
+  width: 74px;
   height: 108px;
   border-radius: 8px;
   overflow: hidden;
@@ -318,14 +424,21 @@ body {
 .reading-card-info h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--dash-ink-900);
   margin: 0;
   line-height: 1.3;
 }
 
 .reading-date {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--dash-rose-muted);
+  margin: 0;
+}
+
+.reading-day {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-pink);
   margin: 0;
 }
 
@@ -360,13 +473,13 @@ body {
 .book-info-dashboard h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--dash-ink-900);
   margin: 0;
 }
 
 .book-info-dashboard p {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--dash-rose-muted);
   margin: 0;
 }
 

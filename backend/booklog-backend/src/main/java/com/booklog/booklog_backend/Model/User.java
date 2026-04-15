@@ -26,7 +26,7 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(name = "profile_image", length = 50)
+    @Column(name = "profile_image", length = 500)
     private String profileImage;
 
     @Column(name = "oauth_provider", length = 50)

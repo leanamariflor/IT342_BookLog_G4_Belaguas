@@ -11,13 +11,13 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name=".HomeActivity"
+            android:name=".feature.home.ui.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".RegisterActivity"
+            android:name=".feature.auth.ui.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".feature.auth.ui.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

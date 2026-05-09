@@ -1,0 +1,500 @@
+.annual-stats-main {
+  gap: 18px;
+}
+
+.annual-stats-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.annual-stats-header h1 {
+  font-size: 30px;
+  line-height: 1.1;
+  color: #2f3442;
+}
+
+.annual-stats-header p {
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.annual-stats-back-arrow {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.annual-stats-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.annual-stats-controls label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.annual-stats-controls select {
+  min-width: 140px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-size: 16px;
+  color: #374151;
+}
+
+.annual-stats-chart-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px 12px 8px;
+  box-shadow: none;
+  border: none;
+}
+
+.annual-stats-chart {
+  height: 240px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(28px, 1fr));
+  gap: 6px;
+  align-items: end;
+  padding: 8px;
+}
+
+.month-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  position: relative;
+}
+
+.month-bar-area-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.month-bar-area {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: visible;
+}
+
+.month-bar-fill {
+  width: 30px;
+  max-width: 80%;
+  border-radius: 8px 8px 0 0;
+  background: #8f9398;
+  position: relative;
+}
+
+.month-bar-fill.selected {
+  background: #d8aac3;
+}
+
+.month-bar-side-count {
+  position: absolute;
+  top: 6px;
+  left: calc(100% + 6px);
+  color: #d8aac3;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.month-bar-item span {
+  font-size: 10px;
+  color: #8b919b;
+  font-weight: 600;
+}
+
+.annual-goal-summary {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.goal-ring {
+  width: 92px;
+  height: 92px;
+  flex-shrink: 0;
+}
+
+.ring-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.ring-bg {
+  fill: none;
+  stroke: #eceff4;
+  stroke-width: 3;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: #d79cb9;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.ring-text {
+  fill: #4b5563;
+  font-size: 0.34rem;
+  text-anchor: middle;
+  font-weight: 700;
+}
+
+.goal-summary-text h3 {
+  font-size: 20px;
+  color: #374151;
+}
+
+.goal-summary-text p {
+  color: #be8ca8;
+  font-size: 26px;
+  line-height: 1;
+  margin-top: 6px;
+}
+
+.goal-edit-button {
+  margin-top: 10px;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #d9a8c0;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.annual-mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mini-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.mini-card p {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.mini-card h3 {
+  margin-top: 6px;
+  font-size: 24px;
+  color: #cc96b4;
+  line-height: 1;
+}
+
+.annual-books-list-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.annual-books-month-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.annual-books-month-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.annual-books-month-title-wrap h3 {
+  font-size: 18px;
+  line-height: 1;
+  color: #1f2937;
+}
+
+.annual-books-month-title-wrap span {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.annual-books-month-line {
+  height: 1px;
+  background: #d1d5db;
+  flex: 1;
+}
+
+.annual-books-calendar-link {
+  border: none;
+  background: transparent;
+  color: #d9a8c0;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.annual-empty-text {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.annual-books-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.annual-book-item {
+  border: none;
+  border-radius: 12px;
+  background: #f9fafb;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.annual-book-item img {
+  width: 84px;
+  height: 118px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.annual-book-item h4 {
+  color: #1f2937;
+  font-size: 16px;
+  margin: 0;
+}
+
+.annual-book-rating {
+  margin-top: 2px;
+  display: flex;
+  gap: 2px;
+  line-height: 1;
+}
+
+.annual-book-rating span {
+  color: #e5e7eb;
+  font-size: 14px;
+}
+
+.annual-book-rating span.filled {
+  color: #d9a8c0;
+}
+
+.annual-book-item p {
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.annual-book-item small {
+  color: #9ca3af;
+  margin-top: 6px;
+  display: block;
+  font-size: 12px;
+}
+
+.goal-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.goal-dialog {
+  width: min(380px, 100%);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.goal-dialog h3 {
+  font-size: 20px;
+  color: #1f2937;
+  text-align: center;
+}
+
+.goal-dialog p {
+  margin-top: 8px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.goal-dialog input {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 20px;
+  text-align: center;
+}
+
+.goal-dialog-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.goal-cancel,
+.goal-save {
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1;
+}
+
+.goal-cancel {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.goal-save {
+  background: #d7a0bd;
+  color: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .annual-stats-header h1 {
+    font-size: 24px;
+  }
+
+  .annual-stats-chart {
+    grid-template-columns: repeat(12, minmax(16px, 1fr));
+    gap: 4px;
+    height: 200px;
+  }
+
+  .month-bar-area {
+    height: 120px;
+  }
+
+  .month-bar-fill {
+    width: 20px;
+  }
+
+  .goal-summary-text h3 {
+    font-size: 18px;
+  }
+
+  .goal-summary-text p {
+    font-size: 20px;
+  }
+
+  .mini-card h3 {
+    font-size: 22px;
+  }
+
+  .annual-mini-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .annual-books-month-title-wrap h3 {
+    font-size: 16px;
+  }
+
+  .annual-books-month-title-wrap span,
+  .annual-books-calendar-link {
+    font-size: 13px;
+  }
+
+  .annual-book-item {
+    grid-template-columns: 76px 1fr;
+    gap: 12px;
+  }
+
+  .annual-book-item img {
+    width: 76px;
+    height: 106px;
+  }
+
+  .annual-book-item h4 {
+    font-size: 16px;
+  }
+
+  .annual-book-item p {
+    font-size: 14px;
+  }
+
+  .annual-book-rating span {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .annual-goal-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .annual-mini-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .annual-books-month-header {
+    gap: 8px;
+  }
+
+  .annual-books-month-title-wrap {
+    gap: 6px;
+  }
+
+  .annual-books-month-title-wrap h3 {
+    font-size: 15px;
+  }
+
+  .annual-books-month-title-wrap span,
+  .annual-books-calendar-link {
+    font-size: 12px;
+  }
+}

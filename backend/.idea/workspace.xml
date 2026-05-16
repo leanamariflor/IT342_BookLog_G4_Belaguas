@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="20f34a5c-7721-4b19-bc56-4b4a4191d2a6" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/booklog-backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/booklog-backend/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mobile/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/App.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/api/axios.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/api/axios.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/css/LoginPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/css/LoginPage.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/css/RegisterPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/css/RegisterPage.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/css/Sidebar.css" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/css/Sidebar.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/css/UserDashboard.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/Dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/Dashboard.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/LoginPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/LoginPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/OAuth2RedirectHandler.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/OAuth2RedirectHandler.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/RegisterPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/RegisterPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/Sidebar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/jsx/Sidebar.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/scripts/Login.js" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/scripts/Login.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/booklog-frontend/src/scripts/Register.js" beforeDir="false" afterPath="$PROJECT_DIR$/../web/booklog-frontend/src/scripts/Register.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="3BzKTTCN7kkb9Jndx1McqGZeOq8" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.BookLogBackendApplication.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "feature/design-patterns-refactor",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/ASUS/Desktop/booklog/IT342_BookLog_G4_Belaguas/backend/booklog-backend"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ASUS\Desktop\booklog\IT342_BookLog_G4_Belaguas\backend" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ASUS\Desktop\booklog\IT342_BookLog_G4_Belaguas\backend\booklog-backend" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="BookLogBackendApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="ms-17" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="envFilePaths">
+        <option value="$PROJECT_DIR$/booklog-backend/.env" />
+      </option>
+      <option name="MAIN_CLASS_NAME" value="com.booklog.booklog_backend.BookLogBackendApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.booklog.booklog_backend.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="backend" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="backend" />
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="20f34a5c-7721-4b19-bc56-4b4a4191d2a6" name="Changes" comment="" />
+      <created>1775486465706</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1775486465706</updated>
+    </task>
+    <servers />
+  </component>
+</project>

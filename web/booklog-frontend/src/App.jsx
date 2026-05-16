@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./jsx/LoginPage";
-import RegisterPage from "./jsx/RegisterPage";
-import Dashboard from "./jsx/Dashboard";
-import Books from "./jsx/Books";
-import BookDetails from "./jsx/BookDetails";
-import AddBooks from "./jsx/AddBooks";
-import Profile from "./jsx/Profile";
-import OAuth2RedirectHandler from "./jsx/OAuth2RedirectHandler";
-import AdminPanel from "./jsx/AdminPanel";
-import AccessDenied from "./jsx/AccessDenied";
-import AnnualStatistics from "./jsx/AnnualStatistics";
-import BookCalendar from "./jsx/BookCalendar";
-import Notes from "./jsx/Notes";
+import LoginPage from "./features/auth/pages/LoginPage";
+import RegisterPage from "./features/auth/pages/RegisterPage";
+import Dashboard from "./features/dashboard/pages/Dashboard";
+import Books from "./features/books/pages/Books";
+import BookDetails from "./features/books/pages/BookDetails";
+import AddBooks from "./features/books/pages/AddBooks";
+import Profile from "./features/profile/pages/Profile";
+import OAuth2RedirectHandler from "./features/auth/pages/OAuth2RedirectHandler";
+import AccessDenied from "./features/shared/components/AccessDenied";
+import AnnualStatistics from "./features/annual/pages/AnnualStatistics";
+import BookCalendar from "./features/calendar/pages/BookCalendar";
+import AdminPanel from "./features/admin/pages/AdminPanel";
+import Notes from "./features/notes/pages/Notes";
 
 const hasAdminRole = () => {
   let user = null;
